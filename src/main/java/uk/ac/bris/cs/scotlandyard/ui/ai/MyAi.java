@@ -120,7 +120,7 @@ public class MyAi implements Ai {
 		Double weight = 1.0;
 		int arrayIndex = 0;
 		while (!finished) {
-			adjacentUnvisited = board.getSetup().graph.adjacentNodes(current).stream().toList();
+			adjacentUnvisited = new ArrayList<>(board.getSetup().graph.adjacentNodes(current).stream().toList());
 			for (Integer node : visited) {
 				adjacentUnvisited.remove(node);
 			}
@@ -132,7 +132,7 @@ public class MyAi implements Ai {
 				}
 			}
 			visited.add(current);
-			if (toVisitArray.isEmpty()){
+			if (arrayIndex >= toVisitArray.size() - 1){
 				finished = true;
 			} else {
 				System.out.println("!   :" +toVisitArray.toString());
