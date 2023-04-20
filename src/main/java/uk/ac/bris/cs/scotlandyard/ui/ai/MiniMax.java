@@ -1,40 +1,52 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
 
+import javafx.util.Pair;
+import uk.ac.bris.cs.scotlandyard.model.Board;
 import uk.ac.bris.cs.scotlandyard.model.Move;
 import uk.ac.bris.cs.scotlandyard.model.Piece;
 
+import java.util.Map;
+
 public class MiniMax {
-    public static Double minimax(MoveTree moveTree, int depth){
+    private final Board board;
+
+    public MiniMax(Board board) {
+        this.board = board;
+
+    }
+
+    //returns a pair of the move destination and the distance
+    public Pair<Integer, Double> minimax(MoveTree moveTree, int depth){
         boolean isMrX = playerChecker(moveTree);
         //base case:
-        if (depth <= 0){
+        if (depth <= 0 || moveTree.getChildren().isEmpty()){
             if (isMrX){
-                //
+                return new Pair<>(moveTree.getSource(), Dijkstra.dijkstraScore( MoveTree.getDetectiveDistances(this.board, moveTree.getSource())));
             } else {
-                //
+                return new Pair<>(moveTree.getSource(), MoveTree.getMrXDistance(this.board, moveTree.getSource()).doubleValue());
             }
         }
 
+        Pair<Integer, Double> evalPair = null;
 
-        double eval;
-
-        double maxEval = Double.NEGATIVE_INFINITY;
         if (isMrX) { //maximising player, thus maximise the minimum distance
+            double maxEval = Double.NEGATIVE_INFINITY;
             for (MoveTree.Node subNode : moveTree.getChildren()){
-                eval = minimax(subNode.getChild(), depth-1);
-                maxEval = Double.max(maxEval,eval);
-                return maxEval;
+                evalPair = minimax(subNode.getChild(), depth-1);
+                maxEval = Double.max(maxEval,evalPair.getValue());
             }
-        } else { //detective, thus maximise the minimum distance
+            return new Pair<>(evalPair.getKey(), maxEval);
+
+        } else { //detective, thus minimise the maximum distance
+            double minEval = Double.NEGATIVE_INFINITY;
             for (MoveTree.Node subNode : moveTree.getChildren()){
-                eval = minimax(subNode.getChild(), depth-1);
-                maxEval = Double.max(maxEval,eval);
-                return maxEval;
+                evalPair = minimax(subNode.getChild(), depth-1);
+                minEval = Double.min(minEval,evalPair.getValue());
+
             }
+            return new Pair<>(evalPair.getKey(), minEval);
         }
-
-
-        return 0.0;
+        //TODO use the value at the shallowest depth not from the bottom
     }
 
     private static boolean playerChecker(MoveTree moveTree){

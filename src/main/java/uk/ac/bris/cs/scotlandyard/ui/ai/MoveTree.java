@@ -57,7 +57,17 @@ public class MoveTree {
 
     public static List<Integer> getDetectiveDistances (Board board, Move move){
         HashMap<Integer,Integer> map = (HashMap<Integer, Integer>) Dijkstra.dijkstra(board, moveDestination(move));
-        List<Piece> detectives = board.getPlayers().stream().filter(x -> x.isDetective()).toList();
+        List<Piece> detectives = board.getPlayers().stream().filter(Piece::isDetective).toList();
+        List<Integer> detectiveDistances = new ArrayList<>();
+        for (Piece p : detectives) {
+            detectiveDistances.add(map.get(board.getDetectiveLocation((Piece.Detective) p).orElseThrow()));
+        }
+        return detectiveDistances;
+    }
+
+    public static List<Integer> getDetectiveDistances (Board board, Integer location){
+        HashMap<Integer,Integer> map = (HashMap<Integer, Integer>) Dijkstra.dijkstra(board, location);
+        List<Piece> detectives = board.getPlayers().stream().filter(Piece::isDetective).toList();
         List<Integer> detectiveDistances = new ArrayList<>();
         for (Piece p : detectives) {
             detectiveDistances.add(map.get(board.getDetectiveLocation((Piece.Detective) p).orElseThrow()));
@@ -67,6 +77,12 @@ public class MoveTree {
 
     public static Integer getMrXDistance (Board board,Move move){
         HashMap<Integer,Integer> map = (HashMap<Integer, Integer>) Dijkstra.dijkstra(board, moveDestination(move));
+        int mrXLocation = board.getAvailableMoves().stream().filter(m -> m.commencedBy().isMrX()).findFirst().orElseThrow().source(); // all the moves should start at the same position
+        return map.get(mrXLocation);
+    }
+
+    public static Integer getMrXDistance (Board board,Integer location){
+        HashMap<Integer,Integer> map = (HashMap<Integer, Integer>) Dijkstra.dijkstra(board, location);
         int mrXLocation = board.getAvailableMoves().stream().filter(m -> m.commencedBy().isMrX()).findFirst().orElseThrow().source(); // all the moves should start at the same position
         return map.get(mrXLocation);
     }
