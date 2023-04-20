@@ -58,11 +58,17 @@ public class MoveTree {
     public static List<Integer> getDetectiveDistances (Board board, Move move){
         HashMap<Integer,Integer> map = (HashMap<Integer, Integer>) Dijkstra.dijkstra(board, moveDestination(move));
         List<Piece> detectives = board.getPlayers().stream().filter(x -> x.isDetective()).toList();
-        List<Integer> detectiveLocations = new ArrayList<>();
-        for (Piece p : detectives){
-            detectiveLocations.add( board.getDetectiveLocation((Piece.Detective) p).orElseThrow());
+        List<Integer> detectiveDistances = new ArrayList<>();
+        for (Piece p : detectives) {
+            detectiveDistances.add(map.get(board.getDetectiveLocation((Piece.Detective) p).orElseThrow()));
         }
-        return detectiveLocations;
+        return detectiveDistances;
+    }
+
+    public static Integer getMrXDistance (Board board,Move move){
+        HashMap<Integer,Integer> map = (HashMap<Integer, Integer>) Dijkstra.dijkstra(board, moveDestination(move));
+        int mrXLocation = board.getAvailableMoves().stream().filter(m -> m.commencedBy().isMrX()).findFirst().orElseThrow().source(); // all the moves should start at the same position
+        return map.get(mrXLocation);
     }
 
     public int size() {
@@ -98,6 +104,17 @@ public class MoveTree {
                     '}';
         }
 
+        public Move getMove() {
+            return move;
+        }
+
+        public MoveTree getChild() {
+            return child;
+        }
+
+        public Double getScore() {
+            return score;
+        }
     }
 
     private static Integer moveDestination(Move move) {
@@ -115,4 +132,11 @@ public class MoveTree {
         return move.accept(destinationChecker);
     }
 
+    public int getSource() {
+        return source;
+    }
+
+    public List<Node> getChildren() {
+        return children;
+    }
 }

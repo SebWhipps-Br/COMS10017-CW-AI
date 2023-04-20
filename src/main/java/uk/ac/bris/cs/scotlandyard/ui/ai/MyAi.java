@@ -43,9 +43,14 @@ public class MyAi implements Ai {
 
         List<Move> moves = board.getAvailableMoves().asList();
         //dijkstra for each possible move
+        int depth = 2;
+
+        MoveTree tree = MoveTree.generate((Board.GameState) board, depth);
+        MiniMax.minimax(tree, depth);
+        System.out.println("tree: " + tree);
+        System.out.println(tree.size());
 
 
-        MoveTree tree = MoveTree.generate((Board.GameState) board, 3);
 //
 //        Dictionary<Move, Double> moveScores = new Hashtable<>();
 //        Double bestScore = 0.0; //higher is better

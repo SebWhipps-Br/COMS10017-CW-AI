@@ -9,7 +9,8 @@ import uk.ac.bris.cs.scotlandyard.model.ScotlandYard;
 import java.util.*;
 
 public class Dijkstra {
-
+    //TODO perform dijkstra on current node to decide if to use a double move
+    // if score is < 2 use double move
 
     private static MutableValueGraph<Integer, ImmutableSet<ScotlandYard.Transport>> filterImpossibleMoves(Board board, ImmutableValueGraph<Integer, ImmutableSet<ScotlandYard.Transport>> graph) {
         // filter the graph, removing impossible moves
