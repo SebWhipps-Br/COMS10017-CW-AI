@@ -5,6 +5,7 @@ import uk.ac.bris.cs.scotlandyard.model.Move;
 import uk.ac.bris.cs.scotlandyard.model.Piece;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class MoveTree {
@@ -34,7 +35,7 @@ public class MoveTree {
      */
     public static void generate(MoveTree tree, Board.GameState board, Piece player, int source, int depth, Double alpha, Double beta) {
         List<Move> moves = board.getAvailableMoves().stream().filter(move -> move.commencedBy().equals(player)).toList();
-        List<Node> children = moves.stream().map(move -> new Node(move, generate(board, player, source, move, depth), MyAi.dijkstra(board, moveDestination(move)))).toList();
+        List<Node> children = moves.stream().map(move -> new Node(move, generate(board, player, source, move, depth), Dijkstra.dijkstraScore(getDetectiveDistances(board, move)))).toList();
         tree.children.addAll(children);
     }
 
@@ -49,9 +50,19 @@ public class MoveTree {
         List<Node> trees = list.stream().map(move ->
                 new Node(move,
                         generate(newBoard, move.commencedBy(), move.source(), move, depth - 1),
-                        MyAi.dijkstra(board, moveDestination(move)))).toList();
+                        Dijkstra.dijkstraScore(getDetectiveDistances(board, move)))).toList();
 
         return new MoveTree(source, trees);
+    }
+
+    public static List<Integer> getDetectiveDistances (Board board, Move move){
+        HashMap<Integer,Integer> map = (HashMap<Integer, Integer>) Dijkstra.dijkstra(board, moveDestination(move));
+        List<Piece> detectives = board.getPlayers().stream().filter(x -> x.isDetective()).toList();
+        List<Integer> detectiveLocations = new ArrayList<>();
+        for (Piece p : detectives){
+            detectiveLocations.add( board.getDetectiveLocation((Piece.Detective) p).orElseThrow());
+        }
+        return detectiveLocations;
     }
 
     public int size() {

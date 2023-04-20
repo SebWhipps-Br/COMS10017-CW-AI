@@ -34,7 +34,7 @@ public class Dijkstra {
     /*
     Calculates a map of the shortest path to all other nodes on the board from a given source
      */
-    public static PathGraph dijkstra(Board board, int source) {
+    public static Map<Integer, Integer> dijkstra(Board board, int source) {
         Map<Integer, Integer> dist = new HashMap<>();
         Map<Integer, Integer> prev = new HashMap<>();
         record NodeInfo(int v, int dist) implements Comparable<NodeInfo> {
@@ -76,8 +76,8 @@ public class Dijkstra {
             var edge = EndpointPair.unordered(entry.getKey(), entry.getValue());
             newGraph.putEdgeValue(edge, graph.edgeValueOrDefault(edge, ImmutableSet.of()));
         }
-
-        return new PathGraph(source, ImmutableValueGraph.copyOf(newGraph));
+        return dist;
+//        return new PathGraph(source, ImmutableValueGraph.copyOf(newGraph));
     }
 
     /**
@@ -96,4 +96,12 @@ public class Dijkstra {
 return null; // TODO
         }
     }
+
+
+    public static Double dijkstraScore(List<Integer> distances){
+        Double mean = distances.stream().mapToDouble(x -> x).average().orElseThrow();
+        Double shortest = Double.valueOf(Collections.min(distances));
+        return shortest + (mean / 10);
+    }
+
 }
