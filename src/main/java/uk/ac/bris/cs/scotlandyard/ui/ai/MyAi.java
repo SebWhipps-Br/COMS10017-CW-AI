@@ -13,20 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 public class MyAi implements Ai {
 
-    private static Integer moveDestination(Move move) {
-        Move.Visitor<Integer> destinationChecker = new Move.Visitor<Integer>() {
-            @Override
-            public Integer visit(Move.SingleMove move) {
-                return move.destination;
-            }
 
-            @Override
-            public Integer visit(Move.DoubleMove move) {
-                return move.destination2;
-            }
-        };
-        return move.accept(destinationChecker);
-    }
 
     private static Set<Integer> getDetectiveLocations(Board board) {
         Set<Integer> detectiveLocations = new HashSet<>();
@@ -81,7 +68,7 @@ public class MyAi implements Ai {
     /*
     Calculates the shortest path / distance from a Mr X source position to a destination (probably a detective location)
     */
-    public static double dijkstra(Board board, int source, int destination) {
+    public static double dijkstra(Board board, int source) {
         Map<Integer, Integer> dist = new HashMap<>();
         Map<Integer, Integer> prev = new HashMap<>();
         record NodeInfo(int v, int dist) implements Comparable<NodeInfo> {

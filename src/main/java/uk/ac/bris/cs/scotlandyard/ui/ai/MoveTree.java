@@ -34,7 +34,7 @@ public class MoveTree {
      */
     public static void generate(MoveTree tree, Board.GameState board, Piece player, int source, int depth, Double alpha, Double beta) {
         List<Move> moves = board.getAvailableMoves().stream().filter(move -> move.commencedBy().equals(player)).toList();
-        List<Node> children = moves.stream().map(move -> new Node(move, generate(board, player, source, move, depth), MyAi.dijkstra(board, move))).toList();
+        List<Node> children = moves.stream().map(move -> new Node(move, generate(board, player, source, move, depth), MyAi.dijkstra(board, moveDestination(move)))).toList();
         tree.children.addAll(children);
     }
 
@@ -49,7 +49,7 @@ public class MoveTree {
         List<Node> trees = list.stream().map(move ->
                 new Node(move,
                         generate(newBoard, move.commencedBy(), move.source(), move, depth - 1),
-                        MyAi.dijkstra(board, move))).toList();
+                        MyAi.dijkstra(board, moveDestination(move)))).toList();
 
         return new MoveTree(source, trees);
     }
@@ -86,5 +86,22 @@ public class MoveTree {
                     ", child=" + child +
                     '}';
         }
+
     }
+
+    private static Integer moveDestination(Move move) {
+        Move.Visitor<Integer> destinationChecker = new Move.Visitor<Integer>() {
+            @Override
+            public Integer visit(Move.SingleMove move) {
+                return move.destination;
+            }
+
+            @Override
+            public Integer visit(Move.DoubleMove move) {
+                return move.destination2;
+            }
+        };
+        return move.accept(destinationChecker);
+    }
+
 }
