@@ -47,47 +47,8 @@ public class MyAi implements Ai {
         return 1.0;
     }
 
-    /*
-    Calculates the shortest path / distance from a Mr X source position to a destination (probably a detective location)
-     */
-    public static double dijkstra(Board board, int source, int destination) {
-        Map<Integer, Integer> dist = new HashMap<>();
-        Map<Integer, Integer> prev = new HashMap<>();
-        record NodeInfo(int v, int dist) implements Comparable<NodeInfo> {
-            @Override
-            public int compareTo(NodeInfo o) {
-                return Integer.compare(this.dist, o.dist);
-            }
-        }
 
-        PriorityQueue<NodeInfo> priorityQueue = new PriorityQueue<>();
 
-        var graph = board.getSetup().graph;
-        for (Integer node : graph.nodes()) {
-            if (node != source) {
-                dist.put(node, Integer.MAX_VALUE);
-                prev.put(node, null);
-            }
-            priorityQueue.add(new NodeInfo(node, dist.get(node)));
-        }
-
-        while (!priorityQueue.isEmpty()) {
-            NodeInfo u = priorityQueue.poll(); // extract the minimum / best vertex
-            for (Integer v : graph.adjacentNodes(u.v)) {
-                int alt = dist.get(u.v) + graph.edgeValue(u.v, v).orElse(ImmutableSet.of()).size();
-                if (alt < dist.get(u.v)) {
-                    dist.put(v, alt);
-                    prev.put(v, u.v);
-                    priorityQueue.remove(u);
-                    u = new NodeInfo(u.v, alt);
-                    priorityQueue.add(u);
-                }
-            }
-        }
-
-        return 1.0;
-
-    }
 
     private static Double dijkstraScore(Set<Double> distances) {
         //Double sum = distances.stream().collect(summingDouble(x -> x));
