@@ -7,6 +7,7 @@ import uk.ac.bris.cs.scotlandyard.model.Piece;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MoveTree {
     private final int source;
@@ -56,21 +57,19 @@ public class MoveTree {
     }
 
     public static List<Integer> getDetectiveDistances (Board board, Move move){
-        HashMap<Integer,Integer> map = (HashMap<Integer, Integer>) Dijkstra.dijkstra(board, moveDestination(move));
-        List<Piece> detectives = board.getPlayers().stream().filter(Piece::isDetective).toList();
-        List<Integer> detectiveDistances = new ArrayList<>();
-        for (Piece p : detectives) {
-            detectiveDistances.add(map.get(board.getDetectiveLocation((Piece.Detective) p).orElseThrow()));
-        }
-        return detectiveDistances;
+        return getDetectiveDistances(board, moveDestination(move));
     }
 
     public static List<Integer> getDetectiveDistances (Board board, Integer location){
-        HashMap<Integer,Integer> map = (HashMap<Integer, Integer>) Dijkstra.dijkstra(board, location);
+        Map<Integer,Integer> map = Dijkstra.dijkstra(board, location);
         List<Piece> detectives = board.getPlayers().stream().filter(Piece::isDetective).toList();
         List<Integer> detectiveDistances = new ArrayList<>();
         for (Piece p : detectives) {
-            detectiveDistances.add(map.get(board.getDetectiveLocation((Piece.Detective) p).orElseThrow()));
+            Integer e = map.get(board.getDetectiveLocation((Piece.Detective) p).orElseThrow());
+            if(e == null) {
+                throw new IllegalStateException("Could not find location for detective " + p);
+            }
+            detectiveDistances.add(e);
         }
         return detectiveDistances;
     }

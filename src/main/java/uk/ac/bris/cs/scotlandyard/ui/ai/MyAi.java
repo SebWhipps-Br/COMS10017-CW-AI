@@ -1,6 +1,5 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
 
-import com.google.common.collect.ImmutableSet;
 import io.atlassian.fugue.Pair;
 import uk.ac.bris.cs.scotlandyard.model.Ai;
 import uk.ac.bris.cs.scotlandyard.model.Board;
@@ -8,11 +7,11 @@ import uk.ac.bris.cs.scotlandyard.model.Move;
 import uk.ac.bris.cs.scotlandyard.model.Piece;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 public class MyAi implements Ai {
-
 
 
     private static Set<Integer> getDetectiveLocations(Board board) {
@@ -24,9 +23,6 @@ public class MyAi implements Ai {
         }
         return detectiveLocations;
     }
-
-
-
 
 
     @Nonnull
@@ -41,35 +37,13 @@ public class MyAi implements Ai {
             @Nonnull Board board,
             Pair<Long, TimeUnit> timeoutPair) {
 
-        List<Move> moves = board.getAvailableMoves().asList();
         //dijkstra for each possible move
         int depth = 2;
         MoveTree tree = MoveTree.generate((Board.GameState) board, depth);
         MiniMax miniMax = new MiniMax(board);
-        javafx.util.Pair<Integer, Double> result =  miniMax.minimax(tree, depth);
-        Integer position = result.getKey();
-        //TODO map this position to the a move
-        System.out.println("tree: " + tree);
-        System.out.println(tree.size());
-
-
-//
-//        Dictionary<Move, Double> moveScores = new Hashtable<>();
-//        Double bestScore = 0.0; //higher is better
-//        Move best = moves.get(0);
-//        for (Move move : moves) {
-//            Double d = dijkstra(board, move);
-//            if (d > bestScore) {
-//                bestScore = d;
-//                best = move;
-//            }
-//            moveScores.put(move, d);
-//
-//        }
-//
-//        return best;
-        // returns a random move, replace with your own implementation
-        return moves.get(new Random().nextInt(moves.size()));
+        javafx.util.Pair<Move, Double> result = miniMax.minimax(null, tree, depth);
+        Move position = result.getKey();
+        return position;
     }
 
     private boolean checkDoubleMove(Move move) {
@@ -86,9 +60,6 @@ public class MyAi implements Ai {
         };
         return move.accept(doubleMoveChecker);
     }
-
-
-
 
 
 }

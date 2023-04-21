@@ -12,23 +12,29 @@ public class Dijkstra {
     //TODO perform dijkstra on current node to decide if to use a double move
     // if score is < 2 use double move
 
-    private static MutableValueGraph<Integer, ImmutableSet<ScotlandYard.Transport>> filterImpossibleMoves(Board board, ImmutableValueGraph<Integer, ImmutableSet<ScotlandYard.Transport>> graph) {
-        // filter the graph, removing impossible moves
-        Set<EndpointPair<Integer>> edges = new HashSet<>(graph.edges());
+    // filter the graph, removing impossible moves
+    private static ValueGraph<Integer, ImmutableSet<ScotlandYard.Transport>> filterImpossibleMoves(Board board, ValueGraph<Integer, ImmutableSet<ScotlandYard.Transport>> graph) {
+        Set<EndpointPair<Integer>> possibleMoves = new HashSet<>();
+
+        // create a set of all the possible moves
         for (Move availableMove : board.getAvailableMoves()) {
             if (availableMove instanceof Move.SingleMove singleMove) {
-                edges.remove(EndpointPair.unordered(singleMove.source(), singleMove.destination));
+                possibleMoves.add(EndpointPair.unordered(singleMove.source(), singleMove.destination));
             }
             if (availableMove instanceof Move.DoubleMove doubleMove) {
-                edges.remove(EndpointPair.unordered(doubleMove.source(), doubleMove.destination1));
-                edges.remove(EndpointPair.unordered(doubleMove.destination1, doubleMove.destination2));
+                possibleMoves.add(EndpointPair.unordered(doubleMove.source(), doubleMove.destination1));
+                possibleMoves.add(EndpointPair.unordered(doubleMove.destination1, doubleMove.destination2));
             }
         }
-        var setMutableValueGraph = ValueGraphBuilder.from(graph).build();
-        for (EndpointPair<Integer> edge : edges) {
-            setMutableValueGraph.removeEdge(edge);
+
+        // go over the graph and remove any *im*possible moves
+        var possibleMovesGraph = Graphs.copyOf(graph);
+        for (EndpointPair<Integer> edge : graph.edges()) {
+            if (!possibleMoves.contains(edge)) {
+                possibleMovesGraph.removeEdge(edge);
+            }
         }
-        return setMutableValueGraph;
+        return possibleMovesGraph;
 
     }
 
@@ -36,8 +42,9 @@ public class Dijkstra {
     Calculates a map of the shortest path to all other nodes on the board from a given source
      */
     public static Map<Integer, Integer> dijkstra(Board board, int source) {
-        Map<Integer, Integer> dist = new HashMap<>();
-        Map<Integer, Integer> prev = new HashMap<>();
+
+
+        // Stores the node value and its distance, but only compares the distance. Used for the priority queue
         record NodeInfo(int v, int dist) implements Comparable<NodeInfo> {
             @Override
             public int compareTo(NodeInfo o) {
@@ -45,9 +52,16 @@ public class Dijkstra {
             }
         }
 
+        Map<Integer, Integer> dist = new HashMap<>();
+        Map<Integer, Integer> prev = new HashMap<>();
         PriorityQueue<NodeInfo> priorityQueue = new PriorityQueue<>();
 
         var graph = filterImpossibleMoves(board, board.getSetup().graph);
+        if (graph.edges().isEmpty()) {
+            throw new IllegalArgumentException("Graph contains no possible moves");
+        }
+
+        dist.put(source, 0);
 
         for (Integer node : graph.nodes()) {
             if (node != source) {
@@ -81,6 +95,12 @@ public class Dijkstra {
 //        return new PathGraph(source, ImmutableValueGraph.copyOf(newGraph));
     }
 
+    public static Double dijkstraScore(List<Integer> distances) {
+        Double mean = distances.stream().mapToDouble(x -> x).average().orElseThrow();
+        Double shortest = Double.valueOf(Collections.min(distances));
+        return shortest + (mean / 10);
+    }
+
     /**
      * Stores the shortest path to each other node from a given source
      *
@@ -94,15 +114,8 @@ public class Dijkstra {
             Iterable<Integer> integers = Traverser.forGraph(moves::adjacentNodes)
                     .depthFirstPostOrder(from);
 
-return null; // TODO
+            return null; // TODO
         }
-    }
-
-
-    public static Double dijkstraScore(List<Integer> distances){
-        Double mean = distances.stream().mapToDouble(x -> x).average().orElseThrow();
-        Double shortest = Double.valueOf(Collections.min(distances));
-        return shortest + (mean / 10);
     }
 
 }

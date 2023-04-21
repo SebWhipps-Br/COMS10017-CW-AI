@@ -5,7 +5,7 @@ import uk.ac.bris.cs.scotlandyard.model.Board;
 import uk.ac.bris.cs.scotlandyard.model.Move;
 import uk.ac.bris.cs.scotlandyard.model.Piece;
 
-import java.util.Map;
+import javax.annotation.Nullable;
 
 public class MiniMax {
     private final Board board;
@@ -15,41 +15,7 @@ public class MiniMax {
 
     }
 
-    //returns a pair of the move destination and the distance
-    public Pair<Integer, Double> minimax(MoveTree moveTree, int depth){
-        boolean isMrX = playerChecker(moveTree);
-        //base case:
-        if (depth <= 0 || moveTree.getChildren().isEmpty()){
-            if (isMrX){
-                return new Pair<>(moveTree.getSource(), Dijkstra.dijkstraScore( MoveTree.getDetectiveDistances(this.board, moveTree.getSource())));
-            } else {
-                return new Pair<>(moveTree.getSource(), MoveTree.getMrXDistance(this.board, moveTree.getSource()).doubleValue());
-            }
-        }
-
-        Pair<Integer, Double> evalPair = null;
-
-        if (isMrX) { //maximising player, thus maximise the minimum distance
-            double maxEval = Double.NEGATIVE_INFINITY;
-            for (MoveTree.Node subNode : moveTree.getChildren()){
-                evalPair = minimax(subNode.getChild(), depth-1);
-                maxEval = Double.max(maxEval,evalPair.getValue());
-            }
-            return new Pair<>(evalPair.getKey(), maxEval);
-
-        } else { //detective, thus minimise the maximum distance
-            double minEval = Double.NEGATIVE_INFINITY;
-            for (MoveTree.Node subNode : moveTree.getChildren()){
-                evalPair = minimax(subNode.getChild(), depth-1);
-                minEval = Double.min(minEval,evalPair.getValue());
-
-            }
-            return new Pair<>(evalPair.getKey(), minEval);
-        }
-        //TODO use the value at the shallowest depth not from the bottom
-    }
-
-    private static boolean playerChecker(MoveTree moveTree){
+    private static boolean playerChecker(MoveTree moveTree) {
         Move.Visitor<Piece> pieceChecker = new Move.Visitor<>() {
             @Override
             public Piece visit(Move.SingleMove move) {
@@ -63,6 +29,44 @@ public class MiniMax {
         };
         //returns true if mrX
         return moveTree.getChildren().stream().map(x -> x.getMove().accept(pieceChecker)).findFirst().orElseThrow().isMrX();
+    }
+
+    //returns a pair of the move destination and the distance
+    public Pair<Move, Double> minimax(@Nullable MoveTree.Node node, MoveTree moveTree, int depth) {
+
+        boolean isMrX = playerChecker(moveTree);
+        //base case:
+        if (depth <= 0 || moveTree.getChildren().isEmpty()) {
+            if (node == null) {
+                throw new IllegalArgumentException("Finished traversing but there's no node. Empty tree?");
+            }
+            if (isMrX) {
+                return new Pair<>(node.getMove(), Dijkstra.dijkstraScore(MoveTree.getDetectiveDistances(this.board, moveTree.getSource())));
+            } else {
+                return new Pair<>(node.getMove(), MoveTree.getMrXDistance(this.board, moveTree.getSource()).doubleValue());
+            }
+        }
+
+        Pair<Move, Double> evalPair = null;
+
+        if (isMrX) { //maximising player, thus maximise the minimum distance
+            double maxEval = Double.NEGATIVE_INFINITY;
+            for (MoveTree.Node subNode : moveTree.getChildren()) {
+                evalPair = minimax(subNode, subNode.getChild(), depth - 1);
+                maxEval = Double.max(maxEval, evalPair.getValue());
+            }
+            return new Pair<>(evalPair.getKey(), maxEval);
+
+        } else { //detective, thus minimise the maximum distance
+            double minEval = Double.NEGATIVE_INFINITY;
+            for (MoveTree.Node subNode : moveTree.getChildren()) {
+                evalPair = minimax(subNode, subNode.getChild(), depth - 1);
+                minEval = Double.min(minEval, evalPair.getValue());
+
+            }
+            return new Pair<>(evalPair.getKey(), minEval);
+        }
+        //TODO use the value at the shallowest depth not from the bottom
     }
 
 }
