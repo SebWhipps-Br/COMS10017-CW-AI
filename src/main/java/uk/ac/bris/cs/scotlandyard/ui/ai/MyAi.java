@@ -38,12 +38,11 @@ public class MyAi implements Ai {
             Pair<Long, TimeUnit> timeoutPair) {
 
         //dijkstra for each possible move
-        int depth = 2;
+        int depth = 1;
         MoveTree tree = MoveTree.generate((Board.GameState) board, depth);
         MiniMax miniMax = new MiniMax(board);
         javafx.util.Pair<Move, Double> result = miniMax.minimax(null, tree, depth);
-        Move position = result.getKey();
-        return position;
+        return result.getKey();
     }
 
     private boolean checkDoubleMove(Move move) {

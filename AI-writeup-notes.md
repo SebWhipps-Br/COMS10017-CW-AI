@@ -33,3 +33,6 @@ Determining an algorithm to combine these numbers into a single score was a litt
 * Looking at only the minimum score would give a score of 1, which is overly harsh, as it ignores the fact that 5/6 detectives have been evaded very well.
 
 We ended up using a combination of minimum and mean: `min(distances) + mean(distances) / 10`. In this situation this gives an output of `1.684`
+
+
+TODO: generate tree semi-lazily, 

@@ -5,7 +5,6 @@ import uk.ac.bris.cs.scotlandyard.model.Move;
 import uk.ac.bris.cs.scotlandyard.model.Piece;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,7 +20,9 @@ public class MoveTree {
 
     public static MoveTree generate(Board.GameState board, int depth) {
         Piece mrX = board.getPlayers().stream().filter(Piece::isMrX).findFirst().orElseThrow();
-        int mrXLocation = board.getAvailableMoves().stream().filter(move -> move.commencedBy().isMrX()).findFirst().orElseThrow().source(); // all the moves should start at the same position
+        int mrXLocation = board.getAvailableMoves().stream()
+                .filter(move -> move.commencedBy().isMrX())
+                .findFirst().orElseThrow().source(); // all the moves should start at the same position
 
         MoveTree root = new MoveTree(mrXLocation, new ArrayList<>());
         generate(root, board, mrX, mrXLocation, depth, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY);
@@ -36,7 +37,11 @@ public class MoveTree {
      */
     public static void generate(MoveTree tree, Board.GameState board, Piece player, int source, int depth, Double alpha, Double beta) {
         List<Move> moves = board.getAvailableMoves().stream().filter(move -> move.commencedBy().equals(player)).toList();
-        List<Node> children = moves.stream().map(move -> new Node(move, generate(board, player, source, move, depth), Dijkstra.dijkstraScore(getDetectiveDistances(board, move)))).toList();
+        List<Node> children = moves.stream()
+                .parallel()
+                .map(move -> new Node(move, generate(board, player, source, move, depth),
+                        Dijkstra.dijkstraScore(getDetectiveDistances(board, move))))
+                .toList();
         tree.children.addAll(children);
     }
 
@@ -48,92 +53,50 @@ public class MoveTree {
         Board.GameState newBoard = board.advance(startingAt);
 
         List<Move> list = newBoard.getAvailableMoves().stream().toList();
-        List<Node> trees = list.stream().map(move ->
-                new Node(move,
-                        generate(newBoard, move.commencedBy(), move.source(), move, depth - 1),
-                        Dijkstra.dijkstraScore(getDetectiveDistances(board, move)))).toList();
+        List<Node> trees = list.stream()
+                .parallel()
+                .map(move ->
+                        new Node(move,
+                                generate(newBoard, move.commencedBy(), move.source(), move, depth - 1),
+                                Dijkstra.dijkstraScore(getDetectiveDistances(board, move)))).toList();
 
         return new MoveTree(source, trees);
     }
 
-    public static List<Integer> getDetectiveDistances (Board board, Move move){
+    public static List<Integer> getDetectiveDistances(Board board, Move move) {
         return getDetectiveDistances(board, moveDestination(move));
     }
 
-    public static List<Integer> getDetectiveDistances (Board board, Integer location){
-        Map<Integer,Integer> map = Dijkstra.dijkstra(board, location);
-        List<Piece> detectives = board.getPlayers().stream().filter(Piece::isDetective).toList();
-        List<Integer> detectiveDistances = new ArrayList<>();
-        for (Piece p : detectives) {
-            Integer e = map.get(board.getDetectiveLocation((Piece.Detective) p).orElseThrow());
-            if(e == null) {
-                throw new IllegalStateException("Could not find location for detective " + p);
-            }
-            detectiveDistances.add(e);
-        }
-        return detectiveDistances;
+    public static List<Integer> getDetectiveDistances(Board board, Integer location) {
+        Map<Integer, Integer> map = Dijkstra.dijkstra(board, location);
+        return board.getPlayers().stream()
+                .filter(Piece::isDetective)
+                .map(piece -> (Piece.Detective) piece)
+                .map(p -> {
+                    Integer e = map.get(board.getDetectiveLocation(p).orElseThrow());
+                    if (e == null) {
+                        throw new IllegalStateException("Could not find location for detective " + p);
+                    }
+                    return e;
+                })
+                .toList();
     }
 
-    public static Integer getMrXDistance (Board board,Move move){
-        HashMap<Integer,Integer> map = (HashMap<Integer, Integer>) Dijkstra.dijkstra(board, moveDestination(move));
-        int mrXLocation = board.getAvailableMoves().stream().filter(m -> m.commencedBy().isMrX()).findFirst().orElseThrow().source(); // all the moves should start at the same position
+    public static Integer getMrXDistance(Board board, Move move) {
+        return getMrXDistance(board, moveDestination(move));
+    }
+
+    public static Integer getMrXDistance(Board board, int location) {
+        Map<Integer, Integer> map = Dijkstra.dijkstra(board, location);
+        int mrXLocation = board.getAvailableMoves()
+                .stream()
+                .filter(m -> m.commencedBy().isMrX())
+                .findFirst().orElseThrow().source(); // all the moves should start at the same position
         return map.get(mrXLocation);
-    }
-
-    public static Integer getMrXDistance (Board board,Integer location){
-        HashMap<Integer,Integer> map = (HashMap<Integer, Integer>) Dijkstra.dijkstra(board, location);
-        int mrXLocation = board.getAvailableMoves().stream().filter(m -> m.commencedBy().isMrX()).findFirst().orElseThrow().source(); // all the moves should start at the same position
-        return map.get(mrXLocation);
-    }
-
-    public int size() {
-        return 1 + children.stream().mapToInt(i -> i.child.size()).sum();
-    }
-
-
-    @Override
-    public String toString() {
-        return "MoveTree{" +
-                "source=" + source +
-                ", children=" + children +
-                '}';
-    }
-
-    static class Node {
-        private final Move move;
-        private final MoveTree child;
-
-        private final Double score;
-
-        Node(Move move, MoveTree child, Double score) {
-            this.move = move;
-            this.child = child;
-            this.score = score;
-        }
-
-        @Override
-        public String toString() {
-            return "Node{" +
-                    "move=" + move +
-                    ", child=" + child +
-                    '}';
-        }
-
-        public Move getMove() {
-            return move;
-        }
-
-        public MoveTree getChild() {
-            return child;
-        }
-
-        public Double getScore() {
-            return score;
-        }
     }
 
     private static Integer moveDestination(Move move) {
-        Move.Visitor<Integer> destinationChecker = new Move.Visitor<Integer>() {
+        Move.Visitor<Integer> destinationChecker = new Move.Visitor<>() {
             @Override
             public Integer visit(Move.SingleMove move) {
                 return move.destination;
@@ -147,11 +110,26 @@ public class MoveTree {
         return move.accept(destinationChecker);
     }
 
+    public int size() {
+        return 1 + children.stream().mapToInt(i -> i.child.size()).sum();
+    }
+
+    @Override
+    public String toString() {
+        return "MoveTree{" +
+                "source=" + source +
+                ", children=" + children +
+                '}';
+    }
+
     public int getSource() {
         return source;
     }
 
     public List<Node> getChildren() {
         return children;
+    }
+
+    record Node(Move move, MoveTree child, Double score) {
     }
 }

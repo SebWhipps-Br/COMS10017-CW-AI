@@ -28,7 +28,7 @@ public class MiniMax {
             }
         };
         //returns true if mrX
-        return moveTree.getChildren().stream().map(x -> x.getMove().accept(pieceChecker)).findFirst().orElseThrow().isMrX();
+        return moveTree.getChildren().stream().map(x -> x.move().accept(pieceChecker)).findFirst().orElseThrow().isMrX();
     }
 
     //returns a pair of the move destination and the distance
@@ -41,9 +41,9 @@ public class MiniMax {
                 throw new IllegalArgumentException("Finished traversing but there's no node. Empty tree?");
             }
             if (isMrX) {
-                return new Pair<>(node.getMove(), Dijkstra.dijkstraScore(MoveTree.getDetectiveDistances(this.board, moveTree.getSource())));
+                return new Pair<>(node.move(), Dijkstra.dijkstraScore(MoveTree.getDetectiveDistances(this.board, moveTree.getSource())));
             } else {
-                return new Pair<>(node.getMove(), MoveTree.getMrXDistance(this.board, moveTree.getSource()).doubleValue());
+                return new Pair<>(node.move(), MoveTree.getMrXDistance(this.board, moveTree.getSource()).doubleValue());
             }
         }
 
@@ -52,7 +52,7 @@ public class MiniMax {
         if (isMrX) { //maximising player, thus maximise the minimum distance
             double maxEval = Double.NEGATIVE_INFINITY;
             for (MoveTree.Node subNode : moveTree.getChildren()) {
-                evalPair = minimax(subNode, subNode.getChild(), depth - 1);
+                evalPair = minimax(subNode, subNode.child(), depth - 1);
                 maxEval = Double.max(maxEval, evalPair.getValue());
             }
             return new Pair<>(evalPair.getKey(), maxEval);
@@ -60,7 +60,7 @@ public class MiniMax {
         } else { //detective, thus minimise the maximum distance
             double minEval = Double.NEGATIVE_INFINITY;
             for (MoveTree.Node subNode : moveTree.getChildren()) {
-                evalPair = minimax(subNode, subNode.getChild(), depth - 1);
+                evalPair = minimax(subNode, subNode.child(), depth - 1);
                 minEval = Double.min(minEval, evalPair.getValue());
 
             }
