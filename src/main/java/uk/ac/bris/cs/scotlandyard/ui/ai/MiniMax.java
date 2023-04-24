@@ -27,7 +27,7 @@ public class MiniMax {
     }
 
     //returns a pair of the move destination and the distance
-    public Pair<Move, Double> minimax(@Nullable MoveTree.Node node, MoveTree moveTree, int depth, Board board) {
+    public Pair<Move, Double> minimax(@Nullable MoveTree.Node node, MoveTree moveTree, int depth, Board board, int mrXLocation) {
         boolean returnTopFlag = false;
         boolean isMrX = node == null ? playerChecker(moveTree) : node.move().commencedBy().isMrX();
         //base case:
@@ -38,8 +38,8 @@ public class MiniMax {
             if (isMrX) {
                 return new Pair<>(node.move(), Dijkstra.dijkstraScore(MoveTree.getDetectiveDistances(board, moveTree.getSource())));
             } else {
-                System.out.println("x: " + MoveTree.getMrXDistance(board, moveTree.getSource()));
-                return new Pair<>(node.move(), MoveTree.getMrXDistance(board, moveTree.getSource()).doubleValue());
+                System.out.println("x: " + MoveTree.getMrXDistance(board, mrXLocation, moveTree.getSource()));
+                return new Pair<>(node.move(), MoveTree.getMrXDistance(board,mrXLocation,  moveTree.getSource()).doubleValue());
             }
 
         } else if (node == null) { //the top of the tree, so the first move in the branch is returned
@@ -52,10 +52,10 @@ public class MiniMax {
         if (isMrX) { //maximising player, thus maximise the minimum distance
             double maxEval = Double.NEGATIVE_INFINITY;
             for (MoveTree.Node subNode : moveTree.getChildren()) {
-                evalPair = minimax(subNode, subNode.child(), depth - 1, ((Board.GameState) board).advance(subNode.move()));
+                evalPair = minimax(subNode, subNode.child(), depth - 1, ((Board.GameState) board).advance(subNode.move()), subNode.move().accept(MoveUtil.destinationChecker));
                 maxEval = Double.max(maxEval, evalPair.getValue());
             }
-            if (returnTopFlag){
+            if (returnTopFlag) {
                 return new Pair<>(evalPair.getKey(), maxEval);
             } else {
                 return new Pair<>(node.move(), maxEval);
@@ -64,11 +64,11 @@ public class MiniMax {
         } else { //detective, thus minimise the maximum distance
             double minEval = Double.POSITIVE_INFINITY;
             for (MoveTree.Node subNode : moveTree.getChildren()) {
-                evalPair = minimax(subNode, subNode.child(), depth - 1, ((Board.GameState) board).advance(subNode.move()));
+                evalPair = minimax(subNode, subNode.child(), depth - 1, ((Board.GameState) board).advance(subNode.move()), mrXLocation);
                 minEval = Double.min(minEval, evalPair.getValue());
 
             }
-            if (returnTopFlag){
+            if (returnTopFlag) {
                 return new Pair<>(evalPair.getKey(), minEval);
             } else {
                 return new Pair<>(node.move(), minEval);

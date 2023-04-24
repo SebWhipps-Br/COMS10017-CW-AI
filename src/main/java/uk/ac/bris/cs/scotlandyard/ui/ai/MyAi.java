@@ -43,7 +43,11 @@ public class MyAi implements Ai {
         System.out.println("1");
         MiniMax miniMax = new MiniMax();
         System.out.println("2");
-        javafx.util.Pair<Move, Double> result = miniMax.minimax(null, tree, depth, board);
+        int mrXLocation = board.getAvailableMoves()
+                .stream()
+                .filter(m -> m.commencedBy().isMrX())
+                .findFirst().orElseThrow().source(); // all the moves should start at the same position
+        javafx.util.Pair<Move, Double> result = miniMax.minimax(null, tree, depth, board, mrXLocation);
         return result.getKey();
     }
 

@@ -1,8 +1,6 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
 
-import uk.ac.bris.cs.scotlandyard.model.Board;
-import uk.ac.bris.cs.scotlandyard.model.Move;
-import uk.ac.bris.cs.scotlandyard.model.Piece;
+import uk.ac.bris.cs.scotlandyard.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,7 +62,7 @@ public class MoveTree {
     }
 
     public static List<Integer> getDetectiveDistances(Board board, Move move) {
-        return getDetectiveDistances(board, moveDestination(move));
+        return getDetectiveDistances(board, MoveUtil.moveDestination(move));
     }
 
     public static List<Integer> getDetectiveDistances(Board board, Integer location) {
@@ -82,33 +80,16 @@ public class MoveTree {
                 .toList();
     }
 
-    public static Integer getMrXDistance(Board board, Move move) {
-        return getMrXDistance(board, moveDestination(move));
+    public static Integer getMrXDistance(Board board, int mrXLocation, Move move) {
+        return getMrXDistance(board, mrXLocation, MoveUtil.moveDestination(move));
     }
 
-    public static Integer getMrXDistance(Board board, int location) {
+    public static Integer getMrXDistance(Board board, int mrXLocation, int location) {
         Map<Integer, Integer> map = Dijkstra.dijkstra(board, location);
-        int mrXLocation = board.getAvailableMoves()
-                .stream()
-                .filter(m -> m.commencedBy().isMrX())
-                .findFirst().orElseThrow().source(); // all the moves should start at the same position
         return map.get(mrXLocation);
     }
 
-    private static Integer moveDestination(Move move) {
-        Move.Visitor<Integer> destinationChecker = new Move.Visitor<>() {
-            @Override
-            public Integer visit(Move.SingleMove move) {
-                return move.destination;
-            }
 
-            @Override
-            public Integer visit(Move.DoubleMove move) {
-                return move.destination2;
-            }
-        };
-        return move.accept(destinationChecker);
-    }
 
     public int size() {
         return 1 + children.stream().mapToInt(i -> i.child.size()).sum();
