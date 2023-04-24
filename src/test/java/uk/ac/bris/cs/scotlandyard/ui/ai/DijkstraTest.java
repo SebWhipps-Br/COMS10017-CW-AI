@@ -22,8 +22,8 @@ public class DijkstraTest {
         var white = new Player(WHITE, defaultDetectiveTickets(), 50);
         var yellow = new Player(YELLOW, defaultDetectiveTickets(), 138);
 
-        final Model model = modelFactory.build(new GameSetup(ScotlandYard.standardGraph(), STANDARD24MOVES), mrX, red);
-        MoveTree generate = MoveTree.generate((Board.GameState) model.getCurrentBoard(), 0);
+        final Model model = modelFactory.build(new GameSetup(ScotlandYard.standardGraph(), STANDARD24MOVES), mrX, red, green, blue, white, yellow);
+        MoveTree generate = MoveTree.generate((Board.GameState) model.getCurrentBoard(), 4);
         System.out.println(generate.size());
     }
 @Test
