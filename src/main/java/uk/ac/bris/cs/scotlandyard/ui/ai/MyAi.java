@@ -47,6 +47,8 @@ public class MyAi implements Ai {
                 .stream()
                 .filter(m -> m.commencedBy().isMrX())
                 .findFirst().orElseThrow().source(); // all the moves should start at the same position
+
+        System.out.println(board.getAvailableMoves());
         javafx.util.Pair<Move, Double> result = miniMax.minimax(null, tree, depth, board, mrXLocation);
         return result.getKey();
     }

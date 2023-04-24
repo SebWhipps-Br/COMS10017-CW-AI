@@ -1,6 +1,8 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
 
-import uk.ac.bris.cs.scotlandyard.model.*;
+import uk.ac.bris.cs.scotlandyard.model.Board;
+import uk.ac.bris.cs.scotlandyard.model.Move;
+import uk.ac.bris.cs.scotlandyard.model.Piece;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +40,7 @@ public class MoveTree {
         List<Node> children = moves.stream()
                 .parallel()
                 .map(move -> new Node(move, generate(board, move, depth - 1),
-                        Dijkstra.dijkstraScore(getDetectiveDistances(board, move))))
+                        getMoveScore(board, move)))
                 .toList();
         tree.children.addAll(children);
     }
@@ -56,14 +58,23 @@ public class MoveTree {
                 .map(move ->
                         new Node(move,
                                 generate(newBoard, move, depth - 1),
-                                Dijkstra.dijkstraScore(getDetectiveDistances(board, move)))).toList();
+                                getMoveScore(board, move))).toList();
 
         return new MoveTree(startingAt.source(), trees);
+    }
+
+    public static Double getMoveScore(Board board, Move move) {
+        double score =  Dijkstra.dijkstraScore(getDetectiveDistances(board, move));
+        if(move instanceof Move.DoubleMove) {
+            return  score / 2;
+        }
+        return score;
     }
 
     public static List<Integer> getDetectiveDistances(Board board, Move move) {
         return getDetectiveDistances(board, MoveUtil.moveDestination(move));
     }
+
 
     public static List<Integer> getDetectiveDistances(Board board, Integer location) {
         Map<Integer, Integer> distanceMap = Dijkstra.dijkstra(board, location);
@@ -88,7 +99,6 @@ public class MoveTree {
         Map<Integer, Integer> map = Dijkstra.dijkstra(board, location);
         return map.get(mrXLocation);
     }
-
 
 
     public int size() {

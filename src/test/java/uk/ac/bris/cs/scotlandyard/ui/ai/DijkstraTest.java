@@ -25,6 +25,7 @@ public class DijkstraTest {
         final Model model = modelFactory.build(new GameSetup(ScotlandYard.standardGraph(), STANDARD24MOVES), mrX, red, green, blue, white, yellow);
         MoveTree generate = MoveTree.generate((Board.GameState) model.getCurrentBoard(), 5);
         System.out.println(generate.size());
+
     }
 @Test
     public void testDijkstraPerformance() throws IOException {
