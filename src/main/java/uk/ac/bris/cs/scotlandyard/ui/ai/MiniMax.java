@@ -38,8 +38,10 @@ public class MiniMax {
             if (isMrX) {
                 return new Pair<>(node.move(), Dijkstra.dijkstraScore(MoveTree.getDetectiveDistances(board, moveTree.getSource())));
             } else {
-                System.out.println("x: " + MoveTree.getMrXDistance(board, mrXLocation, moveTree.getSource()));
-                return new Pair<>(node.move(), MoveTree.getMrXDistance(board,mrXLocation,  moveTree.getSource()).doubleValue());
+                if (board.getAvailableMoves().isEmpty()) { // detectives have won
+                    return new Pair<>(node.move(), Double.POSITIVE_INFINITY); // so very high score
+                }
+                return new Pair<>(node.move(), MoveTree.getMrXDistance(board, mrXLocation, moveTree.getSource()).doubleValue());
             }
 
         } else if (node == null) { //the top of the tree, so the first move in the branch is returned
