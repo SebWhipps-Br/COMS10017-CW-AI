@@ -84,13 +84,12 @@ public class MoveTree {
                 .map(p -> {
                     Integer e = distanceMap.get(board.getDetectiveLocation(p).orElseThrow());
                     if (e == null) {
-                        throw new IllegalStateException("Could not find location for detective " + p );
+                        throw new IllegalStateException("Could not find location for detective " + p);
                     }
                     return e;
                 })
                 .toList();
     }
-
 
 
     public int size() {
