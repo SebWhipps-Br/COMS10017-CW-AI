@@ -2,11 +2,11 @@
 
 ## What has been done
 
-### Model Part
+### Model Part ~ 1 page
 
 All the tests pass!
 
-### AI Part
+### AI Part ~ 3 pages
 
 We started by making a tree of all possible moves. Initially, for faster prototyping we had to rely on some implementation detail, by casting
 the `Board` to a `Board.GameState` to get access to the `advance(Move)` method. This meant that we could build the tree quite easily:
@@ -36,3 +36,5 @@ We ended up using a combination of minimum and mean: `min(distances) + mean(dist
 
 
 TODO: generate tree semi-lazily, 
+
+TODO: Talk about generating tree with all the detective just a single detective
