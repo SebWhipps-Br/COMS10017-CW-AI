@@ -55,14 +55,14 @@ public class MyAi implements Ai {
         //
         //dijkstra for each possible move
         int depth = 4;
-        MoveTree tree = MoveTree.generate((Board.GameState) board, depth);
+        MoveTree tree = MoveTree.generateRootTree((Board.GameState) board, depth);
         System.out.println("1");
         MiniMax miniMax = new MiniMax();
         System.out.println("2");
          // all the moves should start at the same position
 
         System.out.println(board.getAvailableMoves());
-        return miniMax.minimax(tree, depth, board, mrXLocation);
+        return miniMax.minimax(tree, depth, board, mrXLocation).move();
     }
 
     private boolean checkDoubleMove(Move move) {
