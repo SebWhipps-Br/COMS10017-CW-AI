@@ -36,17 +36,30 @@ public class MyAi implements Ai {
     public Move pickMove(
             @Nonnull Board board,
             Pair<Long, TimeUnit> timeoutPair) {
+        //TODO pre evaluate the position
+        // if the position is poor consider and we have double moves -> doubles and reduce depth
 
+        int mrXLocation = board.getAvailableMoves()
+                .stream()
+                .filter(m -> m.commencedBy().isMrX())
+                .findFirst().orElseThrow().source();
+        boolean doubleMoveAvailible = board.getAvailableMoves().stream()
+                .anyMatch(this::checkDoubleMove);
+
+        double currentPositionScore = Dijkstra.dijkstraScore(MoveTree.getDetectiveDistances(board, mrXLocation));
+
+        boolean allowDoubleMove = false;
+        if (currentPositionScore < 2 && doubleMoveAvailible) {
+            allowDoubleMove = true;
+        }
+        //
         //dijkstra for each possible move
         int depth = 4;
         MoveTree tree = MoveTree.generate((Board.GameState) board, depth);
         System.out.println("1");
         MiniMax miniMax = new MiniMax();
         System.out.println("2");
-        int mrXLocation = board.getAvailableMoves()
-                .stream()
-                .filter(m -> m.commencedBy().isMrX())
-                .findFirst().orElseThrow().source(); // all the moves should start at the same position
+         // all the moves should start at the same position
 
         System.out.println(board.getAvailableMoves());
         return miniMax.minimax(tree, depth, board, mrXLocation);
