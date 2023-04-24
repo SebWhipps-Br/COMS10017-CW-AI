@@ -34,7 +34,7 @@ public class MiniMax {
     //returns a pair of the move destination and the distance
     public Pair<Move, Double> minimax(@Nullable MoveTree.Node node, MoveTree moveTree, int depth) {
 
-        boolean isMrX = playerChecker(moveTree);
+        boolean isMrX = node == null ? playerChecker(moveTree) : node.move().commencedBy().isMrX();
         //base case:
         if (depth <= 0 || moveTree.getChildren().isEmpty()) {
             if (node == null) {
