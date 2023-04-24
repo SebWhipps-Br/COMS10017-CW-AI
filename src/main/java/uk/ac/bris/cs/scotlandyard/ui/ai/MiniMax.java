@@ -33,7 +33,7 @@ public class MiniMax {
 
     //returns a pair of the move destination and the distance
     public Pair<Move, Double> minimax(@Nullable MoveTree.Node node, MoveTree moveTree, int depth) {
-
+        boolean returnTopFlag = false;
         boolean isMrX = node == null ? playerChecker(moveTree) : node.move().commencedBy().isMrX();
         //base case:
         if (depth <= 0 || moveTree.getChildren().isEmpty()) {
@@ -45,9 +45,12 @@ public class MiniMax {
             } else {
                 return new Pair<>(node.move(), MoveTree.getMrXDistance(this.board, moveTree.getSource()).doubleValue());
             }
+        } else if (node == null) {
+            returnTopFlag = true;
         }
 
-        Pair<Move, Double> evalPair = null;
+
+        Pair<Move, Double> evalPair = null; // holds move and the evaluation
 
         if (isMrX) { //maximising player, thus maximise the minimum distance
             double maxEval = Double.NEGATIVE_INFINITY;
@@ -55,16 +58,24 @@ public class MiniMax {
                 evalPair = minimax(subNode, subNode.child(), depth - 1);
                 maxEval = Double.max(maxEval, evalPair.getValue());
             }
-            return new Pair<>(evalPair.getKey(), maxEval);
+            if (returnTopFlag){
+                return new Pair<>(evalPair.getKey(), maxEval);
+            } else {
+                return new Pair<>(node.move(), maxEval);
+            }
 
         } else { //detective, thus minimise the maximum distance
-            double minEval = Double.NEGATIVE_INFINITY;
+            double minEval = Double.POSITIVE_INFINITY;
             for (MoveTree.Node subNode : moveTree.getChildren()) {
                 evalPair = minimax(subNode, subNode.child(), depth - 1);
                 minEval = Double.min(minEval, evalPair.getValue());
 
             }
-            return new Pair<>(evalPair.getKey(), minEval);
+            if (returnTopFlag){
+                return new Pair<>(evalPair.getKey(), minEval);
+            } else {
+                return new Pair<>(node.move(), minEval);
+            }
         }
         //TODO use the value at the shallowest depth not from the bottom
     }

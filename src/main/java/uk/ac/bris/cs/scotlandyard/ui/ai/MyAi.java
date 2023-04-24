@@ -38,7 +38,7 @@ public class MyAi implements Ai {
             Pair<Long, TimeUnit> timeoutPair) {
 
         //dijkstra for each possible move
-        int depth = 1;
+        int depth = 2;
         MoveTree tree = MoveTree.generate((Board.GameState) board, depth);
         System.out.println("1");
         MiniMax miniMax = new MiniMax(board);
