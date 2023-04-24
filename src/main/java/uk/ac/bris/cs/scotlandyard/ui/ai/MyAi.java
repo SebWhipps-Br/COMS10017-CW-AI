@@ -66,7 +66,7 @@ public class MyAi implements Ai {
     }
 
     public static boolean checkDoubleMove(Move move) {
-        Move.Visitor<Boolean> doubleMoveChecker = new Move.Visitor<Boolean>() {
+        Move.Visitor<Boolean> doubleMoveChecker = new Move.Visitor<>() {
             @Override
             public Boolean visit(Move.SingleMove move) {
                 return false;
