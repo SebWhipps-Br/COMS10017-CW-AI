@@ -1,7 +1,10 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.graph.*;
+import com.google.common.graph.EndpointPair;
+import com.google.common.graph.MutableValueGraph;
+import com.google.common.graph.ValueGraph;
+import com.google.common.graph.ValueGraphBuilder;
 import javafx.util.Pair;
 import uk.ac.bris.cs.scotlandyard.model.Board;
 import uk.ac.bris.cs.scotlandyard.model.Move;
@@ -110,26 +113,9 @@ public class Dijkstra {
     }
 
     public static Double dijkstraScore(List<Integer> distances) {
-        Double mean = distances.stream().mapToDouble(x -> x).average().orElseThrow();
-        Double shortest = Double.valueOf(Collections.min(distances));
-        return shortest + (mean / 10);
-    }
-
-    /**
-     * Stores the shortest path to each other node from a given source
-     *
-     * @param moves
-     */
-    record PathGraph(int source, ValueGraph<Integer, ImmutableSet<ScotlandYard.Transport>> moves) {
-        /**
-         * Searches from the source to the given from, returning all the transports needed
-         */
-        ImmutableSet<ScotlandYard.Transport> search(int from) {
-            Iterable<Integer> integers = Traverser.forGraph(moves::adjacentNodes)
-                    .depthFirstPostOrder(from);
-
-            return null; // TODO
-        }
+        double mean = distances.stream().mapToDouble(x -> x).average().orElseThrow();
+        double shortest = Collections.min(distances);
+        return shortest + mean / 5;
     }
 
 }

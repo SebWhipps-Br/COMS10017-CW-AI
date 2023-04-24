@@ -46,25 +46,10 @@ public class MyAi implements Ai {
         int mrXLocation = board.getAvailableMoves()
                 .stream()
                 .filter(m -> m.commencedBy().isMrX())
-                .findFirst().orElseThrow().source(); // all the moves should start at the same position
+                .findAny().orElseThrow().source(); // all the moves should start at the same position
 
         var move = miniMax.minimax(tree, depth, board, mrXLocation);
-        return move.getKey();
-    }
-
-    private boolean checkDoubleMove(Move move) {
-        Move.Visitor<Boolean> doubleMoveChecker = new Move.Visitor<Boolean>() {
-            @Override
-            public Boolean visit(Move.SingleMove move) {
-                return false;
-            }
-
-            @Override
-            public Boolean visit(Move.DoubleMove move) {
-                return true;
-            }
-        };
-        return move.accept(doubleMoveChecker);
+        return move.move();
     }
 
 

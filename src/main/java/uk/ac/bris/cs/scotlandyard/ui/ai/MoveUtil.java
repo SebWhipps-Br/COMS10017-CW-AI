@@ -4,7 +4,6 @@ import uk.ac.bris.cs.scotlandyard.model.Move;
 
 public class MoveUtil {
     public static Integer moveDestination(Move move) {
-
         return move.accept(destinationChecker);
     }
 
@@ -19,4 +18,5 @@ public class MoveUtil {
             return move.destination2;
         }
     };
+
 }

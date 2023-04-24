@@ -1,12 +1,14 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
 
 import uk.ac.bris.cs.scotlandyard.model.Board;
+import uk.ac.bris.cs.scotlandyard.model.Board.GameState;
 import uk.ac.bris.cs.scotlandyard.model.Move;
 import uk.ac.bris.cs.scotlandyard.model.Piece;
+import uk.ac.bris.cs.scotlandyard.model.ScotlandYard;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.StreamSupport;
 
 public class MoveTree {
     private final int source;
@@ -18,50 +20,64 @@ public class MoveTree {
         this.children = children;
     }
 
-    public static MoveTree generate(Board.GameState board, int depth) {
-        Piece mrX = board.getPlayers().stream().filter(Piece::isMrX).findFirst().orElseThrow();
+    /**
+     * Generates the root tree from a board
+     *
+     * @param board the board
+     * @param depth the max depth of the tree
+     * @return the tree
+     */
+    public static MoveTree generate(GameState board, int depth) {
+        Piece mrX = board.getPlayers().stream()
+                .filter(Piece::isMrX)
+                .findAny().orElseThrow();
+
         int mrXLocation = board.getAvailableMoves().stream()
                 .filter(move -> move.commencedBy().isMrX())
-                .findFirst().orElseThrow().source(); // all the moves should start at the same position
+                .filter(m -> StreamSupport.stream(m.tickets().spliterator(), false).allMatch(t -> t != ScotlandYard.Ticket.SECRET))
+                .findAny()
+                .orElseThrow()
+                .source(); // all the moves should start at the same position
 
-        MoveTree root = new MoveTree(mrXLocation, new ArrayList<>());
-        generate(root, board, mrX, depth);
-
-        return root;
+        return new MoveTree(mrXLocation, generate(board, mrX, depth));
     }
 
     /**
-     * Generates a subtree of possible moves, and adds them to the given tree.
-     * <p>
-     * Alpha =
+     * Generates a subtree of possible moves based on all the moves that the given player could make
      */
-    public static void generate(MoveTree tree, Board.GameState board, Piece player, int depth) {
-        List<Move> moves = board.getAvailableMoves().stream().filter(move -> move.commencedBy().equals(player)).toList();
-        List<Node> children = moves.stream()
-                .parallel()
-                .map(move -> new Node(move, generate(board, move, depth - 1),
-                        getMoveScore(board, move)))
+    public static List<Node> generate(GameState board, Piece player, int depth) {
+        if (depth <= 0) {
+            return List.of();
+        }
+        return board.getAvailableMoves()
+                .parallelStream()
+                .filter(move -> move.commencedBy().equals(player))
+                .filter(m -> StreamSupport.stream(m.tickets().spliterator(), false).allMatch(t -> t != ScotlandYard.Ticket.SECRET))
+                .map(move -> new Node(move, generate(board, move, depth - 1), getMoveScore(board, move)))
                 .toList();
-        tree.children.addAll(children);
     }
 
-    public static MoveTree generate(Board.GameState board, Move startingAt, int depth) {
+    /**
+     * Generates a subtree of possible moves assuming the given move had been made, i.e. "if we did this move, what would the future state be like?"
+     *
+     * @param board      the board, which should consider {@code startingAt} a valid move (i.e. {@link GameState#advance(Move)} will not throw an error)
+     * @param startingAt the move to "make"
+     * @param depth      the max tree depth, which may be {@code <= 0}
+     * @return a subtree
+     */
+    public static MoveTree generate(GameState board, Move startingAt, int depth) {
         if (depth <= 0) {
             return new MoveTree(startingAt.source(), List.of());
         }
 
-        Board.GameState newBoard = board.advance(startingAt);
+        GameState newBoard = board.advance(startingAt);
 
-        List<Node> trees = newBoard.getAvailableMoves().parallelStream()
-                .map(move ->
-                        new Node(move,
-                                generate(newBoard, move, depth - 1),
-                                getMoveScore(board, move))).toList();
-
+        List<Node> trees = generate(newBoard, startingAt.commencedBy(), depth - 1);
         return new MoveTree(startingAt.source(), trees);
     }
 
-    public static Double getMoveScore(Board board, Move move) {
+
+    public static double getMoveScore(Board board, Move move) {
         return Dijkstra.dijkstraScore(getDetectiveDistances(board, move));
     }
 
