@@ -115,7 +115,7 @@ public class Dijkstra {
     public static Double dijkstraScore(List<Integer> distances) {
         double mean = distances.stream().mapToDouble(x -> x).average().orElseThrow();
         double shortest = Collections.min(distances);
-        return shortest + mean / 5;
+        return shortest + mean / 10;
     }
 
 }

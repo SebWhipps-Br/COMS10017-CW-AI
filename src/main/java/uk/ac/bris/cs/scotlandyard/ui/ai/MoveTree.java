@@ -75,8 +75,13 @@ public class MoveTree {
 
     public static double getMoveScore(Board board, Move move) {
         return Dijkstra.dijkstraScore(getDetectiveDistances(board, move));
-        // TODO: consider double moves, secret tickets, etc.
-        // Further TODO: consider his position (eg dont want to get cornered), and if he has to reveal his move on a turn or not
+        /*
+         TODO: consider double moves, secret tickets, etc.
+         also consider his position (eg dont want to get cornered), and if he has to reveal his move on a turn or not
+         Also, the current method of doing the min + avg / 10 seems to discourage risky plays, eg getting close to 1
+         detective while evading the other 4. we need to weight it more fairly, not sure how
+
+        */
     }
 
     public static List<Integer> getDetectiveDistances(Board board, Move move) {
