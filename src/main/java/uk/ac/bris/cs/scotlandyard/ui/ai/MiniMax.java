@@ -52,28 +52,28 @@ public class MiniMax {
         Pair<Move, Double> evalPair = null; // holds move and the evaluation
 
         if (isMrX) { //maximising player, thus maximise the minimum distance
-            double maxEval = Double.NEGATIVE_INFINITY;
+            Pair<Move, Double> maxEval = new Pair<> (null, Double.NEGATIVE_INFINITY);
             for (MoveTree.Node subNode : moveTree.getChildren()) {
                 evalPair = minimax(subNode, subNode.child(), depth - 1, ((Board.GameState) board).advance(subNode.move()), subNode.move().accept(MoveUtil.destinationChecker));
-                maxEval = Double.max(maxEval, evalPair.getValue());
+                maxEval = new Pair<>(subNode.move(), Double.max(maxEval.getValue(), evalPair.getValue()));
             }
             if (returnTopFlag) {
-                return new Pair<>(evalPair.getKey(), maxEval);
+                return maxEval;
             } else {
-                return new Pair<>(node.move(), maxEval);
+                return new Pair<>(node.move(), maxEval.getValue());
             }
 
         } else { //detective, thus minimise the maximum distance
-            double minEval = Double.POSITIVE_INFINITY;
+            Pair<Move, Double> minEval = new Pair<>(null, Double.POSITIVE_INFINITY);
             for (MoveTree.Node subNode : moveTree.getChildren()) {
                 evalPair = minimax(subNode, subNode.child(), depth - 1, ((Board.GameState) board).advance(subNode.move()), mrXLocation);
-                minEval = Double.min(minEval, evalPair.getValue());
+                minEval = new Pair<>(subNode.move(), Double.min(minEval.getValue(), evalPair.getValue()));
 
             }
             if (returnTopFlag) {
-                return new Pair<>(evalPair.getKey(), minEval);
+                return minEval;
             } else {
-                return new Pair<>(node.move(), minEval);
+                return new Pair<>(node.move(), minEval.getValue());
             }
         }
     }
