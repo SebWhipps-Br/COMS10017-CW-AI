@@ -1,14 +1,12 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
 
 import uk.ac.bris.cs.scotlandyard.model.Board;
-import uk.ac.bris.cs.scotlandyard.model.Board.GameState;
 import uk.ac.bris.cs.scotlandyard.model.Move;
 import uk.ac.bris.cs.scotlandyard.model.Piece;
-import uk.ac.bris.cs.scotlandyard.model.ScotlandYard;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.StreamSupport;
 
 public class MoveTree {
     private final int source;
@@ -42,6 +40,14 @@ public class MoveTree {
     /**
      * Generates a subtree of possible moves based on all the moves that can be made
      */
+    public static void generate(MoveTree tree, Board.GameState board, Piece player, int source, int depth, Double alpha, Double beta, boolean allowDoubleMove) {
+        List<Move> moves = board.getAvailableMoves().stream().filter(move -> move.commencedBy().equals(player))
+                .filter(move -> (!MyAi.checkDoubleMove(move) || allowDoubleMove)).toList(); //removes doubles if needed
+        List<Node> children = moves.stream()
+                .parallel()
+                .filter(move -> move instanceof Move.SingleMove)
+                .map(move -> new Node(move, generate(board, move, depth - 1, allowDoubleMove),
+                        getMoveScore(board, move)))
     public static List<Node> generate(GameState board, int depth) {
         if (depth <= 0) {
             return List.of();
@@ -61,14 +67,26 @@ public class MoveTree {
      * @param depth      the max tree depth, which may be {@code <= 0}
      * @return a subtree
      */
-    public static MoveTree generate(GameState board, Move startingAt, int depth) {
+    
+    public static MoveTree generate(Board.GameState board, Move startingAt, int depth, boolean allowDoubleMove) {
         if (depth <= 0) {
             return new MoveTree(startingAt.source(), List.of());
         }
 
-        GameState newBoard = board.advance(startingAt);
+        Board.GameState newBoard = board.advance(startingAt);
 
         List<Node> trees = generate(newBoard, depth - 1);
+        List<Move> list = newBoard.getAvailableMoves().stream()
+                .filter(move -> (!MyAi.checkDoubleMove(move) || allowDoubleMove))
+                .toList();
+        List<Node> trees = list.stream()
+                .parallel()
+                .filter(move -> move instanceof Move.SingleMove)
+                .map(move ->
+                        new Node(move,
+                                generate(newBoard, move, depth - 1, allowDoubleMove),
+                                getMoveScore(board, move))).toList();
+
         return new MoveTree(startingAt.source(), trees);
     }
 

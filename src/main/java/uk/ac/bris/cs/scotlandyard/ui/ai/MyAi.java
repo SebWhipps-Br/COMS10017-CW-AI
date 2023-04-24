@@ -44,7 +44,7 @@ public class MyAi implements Ai {
                 .filter(m -> m.commencedBy().isMrX())
                 .findFirst().orElseThrow().source();
         boolean doubleMoveAvailible = board.getAvailableMoves().stream()
-                .anyMatch(this::checkDoubleMove);
+                .anyMatch(MyAi::checkDoubleMove);
 
         double currentPositionScore = Dijkstra.dijkstraScore(MoveTree.getDetectiveDistances(board, mrXLocation));
 
@@ -55,7 +55,7 @@ public class MyAi implements Ai {
         //
         //dijkstra for each possible move
         int depth = 4;
-        MoveTree tree = MoveTree.generateRootTree((Board.GameState) board, depth);
+        MoveTree tree = MoveTree.generateRootTree((Board.GameState) board, depth, allowDoubleMove);
         System.out.println("1");
         MiniMax miniMax = new MiniMax();
         System.out.println("2");
@@ -65,7 +65,7 @@ public class MyAi implements Ai {
         return miniMax.minimax(tree, depth, board, mrXLocation).move();
     }
 
-    private boolean checkDoubleMove(Move move) {
+    public static boolean checkDoubleMove(Move move) {
         Move.Visitor<Boolean> doubleMoveChecker = new Move.Visitor<Boolean>() {
             @Override
             public Boolean visit(Move.SingleMove move) {
