@@ -39,13 +39,13 @@ public class MoveTree {
         List<Move> moves = board.getAvailableMoves().stream().filter(move -> move.commencedBy().equals(player)).toList();
         List<Node> children = moves.stream()
                 .parallel()
-                .map(move -> new Node(move, generate(board, player, source, move, depth - 1),
+                .map(move -> new Node(move, generate(board, move, depth - 1),
                         Dijkstra.dijkstraScore(getDetectiveDistances(board, move))))
                 .toList();
         tree.children.addAll(children);
     }
 
-    public static MoveTree generate(Board.GameState board, Piece player, int source, Move startingAt, int depth) {
+    public static MoveTree generate(Board.GameState board, Move startingAt, int depth) {
         if (depth <= 0) {
             return new MoveTree(startingAt.source(), List.of());
         }
@@ -57,9 +57,10 @@ public class MoveTree {
                 .parallel()
                 .map(move ->
                         new Node(move,
-                                generate(newBoard, move.commencedBy(), move.source(), move, depth - 1),
+                                generate(newBoard, move, depth - 1),
                                 Dijkstra.dijkstraScore(getDetectiveDistances(board, move)))).toList();
-        return new MoveTree(source, trees);
+
+        return new MoveTree(startingAt.source(), trees);
     }
 
     public static List<Integer> getDetectiveDistances(Board board, Move move) {
@@ -79,6 +80,10 @@ public class MoveTree {
                     return e;
                 })
                 .toList();
+    }
+
+    public static Integer getMrXDistance(Board board, Move move) {
+        return getMrXDistance(board, moveDestination(move));
     }
 
     public static Integer getMrXDistance(Board board, int location) {

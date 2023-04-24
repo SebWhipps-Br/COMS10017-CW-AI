@@ -35,6 +35,11 @@ public class Dijkstra {
                 possibleMovesGraph.removeEdge(edge);
             }
         }
+        for (Integer node : new ArrayList<>(possibleMovesGraph.nodes())) {
+            if (possibleMovesGraph.incidentEdges(node).isEmpty()) {
+                possibleMovesGraph.removeNode(node);
+            }
+        }
         return possibleMovesGraph;
 
     }
@@ -46,16 +51,17 @@ public class Dijkstra {
 
 
         // Stores the node value and its distance, but only compares the distance. Used for the priority queue
-        record NodeInfo(int v, int dist) implements Comparable<NodeInfo> {
+        record NodeInfo(int nodeValue, int dist) implements Comparable<NodeInfo> {
             @Override
             public int compareTo(NodeInfo o) {
                 return Integer.compare(this.dist, o.dist);
             }
+
         }
-        System.out.println(source);
+
+
         Map<Integer, Integer> dist = new HashMap<>();
         Map<Integer, Integer> prev = new HashMap<>();
-        PriorityQueue<NodeInfo> priorityQueue = new PriorityQueue<>();
 
         var graph = filterImpossibleMoves(board, board.getSetup().graph);
         if (graph.edges().isEmpty()) {
@@ -64,6 +70,9 @@ public class Dijkstra {
 
         dist.put(source, 0);
 
+        PriorityQueue<NodeInfo> priorityQueue = new PriorityQueue<>();
+
+        priorityQueue.add(new NodeInfo(source, dist.get(source)));
         for (Integer node : graph.nodes()) {
             if (node != source) {
                 dist.put(node, Integer.MAX_VALUE);
@@ -73,15 +82,16 @@ public class Dijkstra {
         }
 
         while (!priorityQueue.isEmpty()) {
-            NodeInfo u = priorityQueue.poll(); // extract the minimum / best vertex
-            for (Integer v : graph.adjacentNodes(u.v)) {
-                int alt = dist.get(u.v) + graph.edgeValue(u.v, v).orElse(ImmutableSet.of()).size();
-                if (alt < dist.get(u.v)) {
-                    dist.put(v, alt);
-                    prev.put(v, u.v);
-                    priorityQueue.remove(u);
-                    u = new NodeInfo(u.v, alt);
-                    priorityQueue.add(u);
+            NodeInfo u = priorityQueue.remove(); // extract the minimum / best vertex
+            for (Integer neighbour : graph.adjacentNodes(u.nodeValue)) {
+                int altDist = dist.get(neighbour);
+                int edgeVal = graph.edgeValue(u.nodeValue, neighbour).orElse(ImmutableSet.of()).size();
+                int alt = altDist == Integer.MAX_VALUE ? edgeVal : altDist + edgeVal;
+                if (alt < altDist) {
+                    dist.put(neighbour, alt);
+                    prev.put(neighbour, u.nodeValue);
+
+                    priorityQueue.add(new NodeInfo(neighbour, alt));
                 }
             }
         }
@@ -89,6 +99,8 @@ public class Dijkstra {
 
         MutableValueGraph<Integer, ImmutableSet<ScotlandYard.Transport>> newGraph = ValueGraphBuilder.undirected().build();
         for (Map.Entry<Integer, Integer> entry : prev.entrySet()) {
+            if (entry.getValue() == null) continue;
+            if (entry.getValue() == Integer.MAX_VALUE) continue; // cannot reach
             var edge = EndpointPair.unordered(entry.getKey(), entry.getValue());
             newGraph.putEdgeValue(edge, graph.edgeValueOrDefault(edge, ImmutableSet.of()));
         }
