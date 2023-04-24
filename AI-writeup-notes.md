@@ -35,7 +35,13 @@ Determining an algorithm to combine these numbers into a single score was a litt
 We ended up using a combination of minimum and mean: `min(distances) + mean(distances) / 10`. In this situation this gives an output of `1.684`
 
 
+Optimizations: 
 TODO: generate tree semi-lazily, 
 
 TODO: Talk about generating tree with all the detective just a single detective
     WHY DOES getPlayers() RETURN A Piece!!!
+
+TODO: only use double moves when necessary
+
+TODO: don't generate secret move trees, just replace a normal ticket with a secret move when applicable
+
