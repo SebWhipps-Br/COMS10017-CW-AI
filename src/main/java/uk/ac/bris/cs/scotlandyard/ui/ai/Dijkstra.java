@@ -8,6 +8,7 @@ import uk.ac.bris.cs.scotlandyard.model.Move;
 import uk.ac.bris.cs.scotlandyard.model.ScotlandYard;
 
 import java.util.*;
+import java.util.function.ToIntFunction;
 
 public class Dijkstra {
 
@@ -51,6 +52,10 @@ public class Dijkstra {
     TODO: use a fibonacci heap for the queue for extra performance
      */
     public static Map<Integer, Integer> dijkstra(Board board, int source) {
+        return pureDijkstra(filterImpossibleMoves(board, board.getSetup().graph), AbstractCollection::size, source);
+    }
+
+    public static <T> Map<Integer, Integer> pureDijkstra(ValueGraph<Integer, ? extends T> graph, ToIntFunction<T> scoring, int source) {
         // Stores the node value and its distance, but only compares the distance. Used for the priority queue
         record NodeInfo(int nodeValue, int dist) implements Comparable<NodeInfo> {
             @Override
@@ -64,7 +69,6 @@ public class Dijkstra {
         Map<Integer, Integer> dist = new HashMap<>();
         Map<Integer, Integer> prev = new HashMap<>();
 
-        var graph = filterImpossibleMoves(board, board.getSetup().graph);
         if (graph.edges().isEmpty()) {
             throw new IllegalArgumentException("Graph contains no possible moves");
         }
@@ -88,10 +92,11 @@ public class Dijkstra {
             }
             for (Integer neighbour : graph.adjacentNodes(u.nodeValue)) {
 
-                int altDist = dist.get(neighbour);
-                int edgeVal = graph.edgeValue(u.nodeValue, neighbour).orElse(ImmutableSet.of()).size();
-                int alt = altDist == Integer.MAX_VALUE ? edgeVal : altDist + edgeVal;
-                if (alt < altDist) {
+                int alt = dist.get(u.nodeValue) + graph.edgeValue(u.nodeValue, neighbour)
+                        .map(scoring::applyAsInt)
+                        .orElse(0);
+
+                if (alt < dist.get(neighbour)) {
                     dist.put(neighbour, alt);
                     prev.put(neighbour, u.nodeValue);
 
@@ -101,15 +106,7 @@ public class Dijkstra {
         }
 
 
-//        MutableValueGraph<Integer, ImmutableSet<ScotlandYard.Ticket>> newGraph = ValueGraphBuilder.undirected().build();
-//        for (Map.Entry<Integer, Integer> entry : prev.entrySet()) {
-//            if (entry.getValue() == null) continue;
-//            if (entry.getValue() == Integer.MAX_VALUE) continue; // cannot reach
-//            var edge = EndpointPair.unordered(entry.getKey(), entry.getValue());
-//            newGraph.putEdgeValue(edge, graph.edgeValueOrDefault(edge, ImmutableSet.of()));
-//        }
         return dist;
-//        return new PathGraph(source, ImmutableValueGraph.copyOf(newGraph));
     }
 
     public static Double dijkstraScore(List<Integer> distances) {

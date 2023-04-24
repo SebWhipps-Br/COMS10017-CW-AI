@@ -39,6 +39,7 @@ public class MoveTree {
         List<Move> moves = board.getAvailableMoves().stream().filter(move -> move.commencedBy().equals(player)).toList();
         List<Node> children = moves.stream()
                 .parallel()
+                .filter(move -> move instanceof Move.SingleMove)
                 .map(move -> new Node(move, generate(board, move, depth - 1),
                         getMoveScore(board, move)))
                 .toList();
@@ -55,6 +56,7 @@ public class MoveTree {
         List<Move> list = newBoard.getAvailableMoves().stream().toList();
         List<Node> trees = list.stream()
                 .parallel()
+                .filter(move -> move instanceof Move.SingleMove)
                 .map(move ->
                         new Node(move,
                                 generate(newBoard, move, depth - 1),

@@ -38,7 +38,7 @@ public class MyAi implements Ai {
             Pair<Long, TimeUnit> timeoutPair) {
 
         //dijkstra for each possible move
-        int depth = 3;
+        int depth = 4;
         MoveTree tree = MoveTree.generate((Board.GameState) board, depth);
         System.out.println("1");
         MiniMax miniMax = new MiniMax();
@@ -49,8 +49,7 @@ public class MyAi implements Ai {
                 .findFirst().orElseThrow().source(); // all the moves should start at the same position
 
         System.out.println(board.getAvailableMoves());
-        javafx.util.Pair<Move, Double> result = miniMax.minimax(null, tree, depth, board, mrXLocation);
-        return result.getKey();
+        return miniMax.minimax(tree, depth, board, mrXLocation);
     }
 
     private boolean checkDoubleMove(Move move) {
