@@ -21,38 +21,34 @@ public class MoveTree {
     }
 
     /**
-     * Generates the root tree from a board
+     * Generates the root tree from a board. It must be Mr X's turn
      *
      * @param board the board
      * @param depth the max depth of the tree
      * @return the tree
      */
-    public static MoveTree generate(GameState board, int depth) {
-        Piece mrX = board.getPlayers().stream()
-                .filter(Piece::isMrX)
-                .findAny().orElseThrow();
+    public static MoveTree generateRootTree(GameState board, int depth) {
 
         int mrXLocation = board.getAvailableMoves().stream()
                 .filter(move -> move.commencedBy().isMrX())
-                .filter(m -> StreamSupport.stream(m.tickets().spliterator(), false).allMatch(t -> t != ScotlandYard.Ticket.SECRET))
                 .findAny()
                 .orElseThrow()
                 .source(); // all the moves should start at the same position
 
-        return new MoveTree(mrXLocation, generate(board, mrX, depth));
+        return new MoveTree(mrXLocation, generate(board, depth));
     }
 
+
     /**
-     * Generates a subtree of possible moves based on all the moves that the given player could make
+     * Generates a subtree of possible moves based on all the moves that can be made
      */
-    public static List<Node> generate(GameState board, Piece player, int depth) {
+    public static List<Node> generate(GameState board, int depth) {
         if (depth <= 0) {
             return List.of();
         }
         return board.getAvailableMoves()
                 .parallelStream()
-                .filter(move -> move.commencedBy().equals(player))
-                .filter(m -> StreamSupport.stream(m.tickets().spliterator(), false).allMatch(t -> t != ScotlandYard.Ticket.SECRET))
+                .filter(m -> StreamSupport.stream(m.tickets().spliterator(), false).allMatch(t -> t != ScotlandYard.Ticket.SECRET)) // TODO be smarter about secret ticket usage
                 .map(move -> new Node(move, generate(board, move, depth - 1), getMoveScore(board, move)))
                 .toList();
     }
@@ -72,13 +68,15 @@ public class MoveTree {
 
         GameState newBoard = board.advance(startingAt);
 
-        List<Node> trees = generate(newBoard, startingAt.commencedBy(), depth - 1);
+        List<Node> trees = generate(newBoard, depth - 1);
         return new MoveTree(startingAt.source(), trees);
     }
 
 
     public static double getMoveScore(Board board, Move move) {
         return Dijkstra.dijkstraScore(getDetectiveDistances(board, move));
+        // TODO: consider double moves, secret tickets, etc.
+        // Further TODO: consider his position (eg dont want to get cornered), and if he has to reveal his move on a turn or not
     }
 
     public static List<Integer> getDetectiveDistances(Board board, Move move) {
