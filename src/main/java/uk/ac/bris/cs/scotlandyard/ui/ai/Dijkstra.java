@@ -2,6 +2,7 @@ package uk.ac.bris.cs.scotlandyard.ui.ai;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.graph.*;
+import javafx.util.Pair;
 import uk.ac.bris.cs.scotlandyard.model.Board;
 import uk.ac.bris.cs.scotlandyard.model.Move;
 import uk.ac.bris.cs.scotlandyard.model.ScotlandYard;
@@ -14,37 +15,42 @@ public class Dijkstra {
     // if score is < 2 use double move
 
     // filter the graph, removing impossible moves
-    private static ValueGraph<Integer, ImmutableSet<ScotlandYard.Transport>> filterImpossibleMoves(Board board, ValueGraph<Integer, ImmutableSet<ScotlandYard.Transport>> graph) {
-        Set<EndpointPair<Integer>> possibleMoves = new HashSet<>();
+    private static ValueGraph<Integer, ImmutableSet<ScotlandYard.Ticket>> filterImpossibleMoves(Board board, ValueGraph<Integer, ImmutableSet<ScotlandYard.Transport>> graph) {
+        Set<Pair<EndpointPair<Integer>, Iterable<ScotlandYard.Ticket>>> possibleMoves = new HashSet<>();
 
         // create a set of all the possible moves
         for (Move availableMove : board.getAvailableMoves()) {
             if (availableMove instanceof Move.SingleMove singleMove) {
-                possibleMoves.add(EndpointPair.unordered(singleMove.source(), singleMove.destination));
+
+                possibleMoves.add(
+                        new Pair<>(EndpointPair.unordered(singleMove.source(), singleMove.destination), availableMove.tickets()));
             }
             if (availableMove instanceof Move.DoubleMove doubleMove) {
-                possibleMoves.add(EndpointPair.unordered(doubleMove.source(), doubleMove.destination1));
-                possibleMoves.add(EndpointPair.unordered(doubleMove.destination1, doubleMove.destination2));
+                possibleMoves.add(
+                        new Pair<>(EndpointPair.unordered(doubleMove.source(), doubleMove.destination1), Set.of(doubleMove.ticket1)));
+                possibleMoves.add(new Pair<>(EndpointPair.unordered(doubleMove.destination1, doubleMove.destination2), Set.of(doubleMove.ticket2)));
             }
         }
 
         // go over the graph and remove any *im*possible moves
-        var possibleMovesGraph = Graphs.copyOf(graph);
-        for (EndpointPair<Integer> edge : graph.edges()) {
-            if (!possibleMoves.contains(edge)) {
-                possibleMovesGraph.removeEdge(edge);
-            }
+        MutableValueGraph<Integer, ImmutableSet<ScotlandYard.Ticket>> possibleMovesGraph = ValueGraphBuilder.undirected().build();
+        for (Pair<EndpointPair<Integer>, Iterable<ScotlandYard.Ticket>> possibleMove : possibleMoves) {
+            possibleMovesGraph.putEdgeValue(possibleMove.getKey(), ImmutableSet.copyOf(possibleMove.getValue()));
         }
+        for (Integer node : graph.nodes()) {
+            possibleMovesGraph.addNode(node);
+        }
+
         return possibleMovesGraph;
 
     }
 
     /*
     Calculates a map of the shortest path to all other nodes on the board from a given source
+
+    TODO: use a fibonacci heap for the queue for extra performance
      */
     public static Map<Integer, Integer> dijkstra(Board board, int source) {
-
-
         // Stores the node value and its distance, but only compares the distance. Used for the priority queue
         record NodeInfo(int nodeValue, int dist) implements Comparable<NodeInfo> {
             @Override
@@ -67,7 +73,6 @@ public class Dijkstra {
 
         PriorityQueue<NodeInfo> priorityQueue = new PriorityQueue<>();
 
-        priorityQueue.add(new NodeInfo(source, dist.get(source)));
         for (Integer node : graph.nodes()) {
             if (node != source) {
                 dist.put(node, Integer.MAX_VALUE);
@@ -78,7 +83,11 @@ public class Dijkstra {
 
         while (!priorityQueue.isEmpty()) {
             NodeInfo u = priorityQueue.remove(); // extract the minimum / best vertex
+            if (!graph.nodes().contains(u.nodeValue)) {
+                throw new IllegalArgumentException("Not in graph");
+            }
             for (Integer neighbour : graph.adjacentNodes(u.nodeValue)) {
+
                 int altDist = dist.get(neighbour);
                 int edgeVal = graph.edgeValue(u.nodeValue, neighbour).orElse(ImmutableSet.of()).size();
                 int alt = altDist == Integer.MAX_VALUE ? edgeVal : altDist + edgeVal;
@@ -92,13 +101,13 @@ public class Dijkstra {
         }
 
 
-        MutableValueGraph<Integer, ImmutableSet<ScotlandYard.Transport>> newGraph = ValueGraphBuilder.undirected().build();
-        for (Map.Entry<Integer, Integer> entry : prev.entrySet()) {
-            if (entry.getValue() == null) continue;
-            if (entry.getValue() == Integer.MAX_VALUE) continue; // cannot reach
-            var edge = EndpointPair.unordered(entry.getKey(), entry.getValue());
-            newGraph.putEdgeValue(edge, graph.edgeValueOrDefault(edge, ImmutableSet.of()));
-        }
+//        MutableValueGraph<Integer, ImmutableSet<ScotlandYard.Ticket>> newGraph = ValueGraphBuilder.undirected().build();
+//        for (Map.Entry<Integer, Integer> entry : prev.entrySet()) {
+//            if (entry.getValue() == null) continue;
+//            if (entry.getValue() == Integer.MAX_VALUE) continue; // cannot reach
+//            var edge = EndpointPair.unordered(entry.getKey(), entry.getValue());
+//            newGraph.putEdgeValue(edge, graph.edgeValueOrDefault(edge, ImmutableSet.of()));
+//        }
         return dist;
 //        return new PathGraph(source, ImmutableValueGraph.copyOf(newGraph));
     }
