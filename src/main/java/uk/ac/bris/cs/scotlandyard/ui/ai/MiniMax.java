@@ -40,7 +40,7 @@ public class MiniMax {
         return root.getChildren()
                 .parallelStream()
                 .map(child -> minimax(child, depth - 1, ((Board.GameState) board).advance(child.move()), mrXLocation))
-                .min(Comparator.comparingDouble(MinimaxResult::score))
+                .max(Comparator.comparingDouble(MinimaxResult::score))
                 .orElseThrow();
     }
 
