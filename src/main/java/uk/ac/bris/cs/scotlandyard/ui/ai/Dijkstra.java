@@ -51,8 +51,8 @@ public class Dijkstra {
 
     TODO: use a fibonacci heap for the queue for extra performance
      */
-    public static Map<Integer, Integer> dijkstra(Board board, int source) {
-        return pureDijkstra(filterImpossibleMoves(board, board.getSetup().graph), AbstractCollection::size, source);
+    public static Map<Integer, Integer> dijkstra(boolean considerTickets, Board board, int source) {
+        return pureDijkstra(considerTickets ? filterImpossibleMoves(board, board.getSetup().graph) : board.getSetup().graph, AbstractCollection::size, source);
     }
 
     public static <T> Map<Integer, Integer> pureDijkstra(ValueGraph<Integer, ? extends T> graph, ToIntFunction<T> scoring, int source) {
@@ -91,8 +91,8 @@ public class Dijkstra {
                 throw new IllegalArgumentException("Not in graph");
             }
             for (Integer neighbour : graph.adjacentNodes(u.nodeValue)) {
-
-                int alt = dist.get(u.nodeValue) + graph.edgeValue(u.nodeValue, neighbour)
+                int uDist = dist.get(u.nodeValue);
+                int alt = uDist == Integer.MAX_VALUE ? Integer.MAX_VALUE : uDist + graph.edgeValue(u.nodeValue, neighbour)
                         .map(scoring::applyAsInt)
                         .orElse(0);
 
@@ -105,7 +105,7 @@ public class Dijkstra {
             }
         }
 
-
+        dist.entrySet().removeIf(e -> e.getValue() == Integer.MAX_VALUE); // remove paths that aren't accessible at all
         return dist;
     }
 

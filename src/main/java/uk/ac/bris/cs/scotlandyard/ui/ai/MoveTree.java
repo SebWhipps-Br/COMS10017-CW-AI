@@ -39,7 +39,6 @@ public class MoveTree {
         List<Move> moves = board.getAvailableMoves().stream().filter(move -> move.commencedBy().equals(player)).toList();
         List<Node> children = moves.stream()
                 .parallel()
-                .filter(move -> move instanceof Move.SingleMove)
                 .map(move -> new Node(move, generate(board, move, depth - 1),
                         getMoveScore(board, move)))
                 .toList();
@@ -56,7 +55,6 @@ public class MoveTree {
         List<Move> list = newBoard.getAvailableMoves().stream().toList();
         List<Node> trees = list.stream()
                 .parallel()
-                .filter(move -> move instanceof Move.SingleMove)
                 .map(move ->
                         new Node(move,
                                 generate(newBoard, move, depth - 1),
@@ -79,28 +77,20 @@ public class MoveTree {
 
 
     public static List<Integer> getDetectiveDistances(Board board, Integer location) {
-        Map<Integer, Integer> distanceMap = Dijkstra.dijkstra(board, location);
+        Map<Integer, Integer> distanceMap = Dijkstra.dijkstra(false, board, location);
         return board.getPlayers().stream()
                 .filter(Piece::isDetective)
                 .map(piece -> (Piece.Detective) piece)
                 .map(p -> {
                     Integer e = distanceMap.get(board.getDetectiveLocation(p).orElseThrow());
                     if (e == null) {
-                        throw new IllegalStateException("Could not find location for detective " + p);
+                        throw new IllegalStateException("Could not find location for detective " + p );
                     }
                     return e;
                 })
                 .toList();
     }
 
-    public static Integer getMrXDistance(Board board, int mrXLocation, Move move) {
-        return getMrXDistance(board, mrXLocation, MoveUtil.moveDestination(move));
-    }
-
-    public static Integer getMrXDistance(Board board, int mrXLocation, int location) {
-        Map<Integer, Integer> map = Dijkstra.dijkstra(board, location);
-        return map.get(mrXLocation);
-    }
 
 
     public int size() {
