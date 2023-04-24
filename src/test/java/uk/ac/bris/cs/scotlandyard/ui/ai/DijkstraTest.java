@@ -17,10 +17,10 @@ public class DijkstraTest {
 
         var mrX = new Player(MRX, defaultMrXTickets(), 106);
         var red = new Player(RED, defaultDetectiveTickets(), 91);
-//        var green = new Player(GREEN, defaultDetectiveTickets(), 29);
-//        var blue = new Player(BLUE, defaultDetectiveTickets(), 94);
-//        var white = new Player(WHITE, defaultDetectiveTickets(), 50);
-//        var yellow = new Player(YELLOW, defaultDetectiveTickets(), 138);
+        var green = new Player(GREEN, defaultDetectiveTickets(), 29);
+        var blue = new Player(BLUE, defaultDetectiveTickets(), 94);
+        var white = new Player(WHITE, defaultDetectiveTickets(), 50);
+        var yellow = new Player(YELLOW, defaultDetectiveTickets(), 138);
 
         final Model model = modelFactory.build(new GameSetup(ScotlandYard.standardGraph(), STANDARD24MOVES), mrX, red);
         MoveTree generate = MoveTree.generate((Board.GameState) model.getCurrentBoard(), 0);

@@ -35,11 +35,6 @@ public class Dijkstra {
                 possibleMovesGraph.removeEdge(edge);
             }
         }
-        for (Integer node : new ArrayList<>(possibleMovesGraph.nodes())) {
-            if (possibleMovesGraph.incidentEdges(node).isEmpty()) {
-                possibleMovesGraph.removeNode(node);
-            }
-        }
         return possibleMovesGraph;
 
     }

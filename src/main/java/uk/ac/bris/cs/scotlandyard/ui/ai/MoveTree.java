@@ -68,12 +68,12 @@ public class MoveTree {
     }
 
     public static List<Integer> getDetectiveDistances(Board board, Integer location) {
-        Map<Integer, Integer> map = Dijkstra.dijkstra(board, location);
+        Map<Integer, Integer> distanceMap = Dijkstra.dijkstra(board, location);
         return board.getPlayers().stream()
                 .filter(Piece::isDetective)
                 .map(piece -> (Piece.Detective) piece)
                 .map(p -> {
-                    Integer e = map.get(board.getDetectiveLocation(p).orElseThrow());
+                    Integer e = distanceMap.get(board.getDetectiveLocation(p).orElseThrow());
                     if (e == null) {
                         throw new IllegalStateException("Could not find location for detective " + p);
                     }
