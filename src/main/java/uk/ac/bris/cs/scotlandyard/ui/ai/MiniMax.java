@@ -5,6 +5,8 @@ import uk.ac.bris.cs.scotlandyard.model.Board;
 import uk.ac.bris.cs.scotlandyard.model.Move;
 import uk.ac.bris.cs.scotlandyard.model.Piece;
 
+import java.util.Comparator;
+
 public class MiniMax {
 
 
@@ -34,14 +36,11 @@ public class MiniMax {
         }
 
         // We are Mr X, so the child moves are the detectives - we want to minimize the detective results
-        Pair<Move, Double> min = null;
-        for (MoveTree.Node child : root.getChildren()) {
-            Pair<Move, Double> minimax = minimax(child, depth - 1, ((Board.GameState) board).advance(child.move()), mrXLocation);
-            if (min == null || minimax.getValue() < min.getValue()) {
-                min = new Pair<>(child.move(), minimax.getValue());
-            }
-        }
-        return min;
+        return root.getChildren()
+                .parallelStream()
+                .map(child -> minimax(child, depth - 1, ((Board.GameState) board).advance(child.move()), mrXLocation))
+                .min(Comparator.comparingDouble(Pair::getValue))
+                .orElseThrow();
     }
 
     //returns a pair of the move destination and the distance
@@ -65,21 +64,20 @@ public class MiniMax {
         Pair<Move, Double> evalPair = null; // holds move and the evaluation
 
         if (isMrX) { //maximising player, thus maximise the minimum distance
-            double maxEval = Double.NEGATIVE_INFINITY;
-            for (MoveTree.Node subNode : node.child().getChildren()) {
-                evalPair = minimax(subNode, depth - 1, ((Board.GameState) board).advance(subNode.move()),
-                        subNode.move().accept(MoveUtil.destinationChecker));
-                maxEval = Double.max(maxEval, evalPair.getValue());
-            }
-            return new Pair<>(node.move(), maxEval);
+            return node.child().getChildren()
+                    .parallelStream()
+                    .map(subNode -> minimax(subNode, depth - 1, ((Board.GameState) board).advance(subNode.move()), subNode.move().accept(MoveUtil.destinationChecker)))
+                    .max(Comparator.comparingDouble(Pair::getValue))
+                    .map(p -> new Pair<>(node.move(), p.getValue()))
+                    .orElseThrow();
 
         } else { //detective, thus minimise the maximum distance
-            double minEval = Double.POSITIVE_INFINITY;
-            for (MoveTree.Node subNode : node.child().getChildren()) {
-                evalPair = minimax(subNode, depth - 1, ((Board.GameState) board).advance(subNode.move()), mrXLocation);
-                minEval = Double.min(minEval, evalPair.getValue());
-            }
-            return new Pair<>(node.move(), minEval);
+            return node.child().getChildren()
+                    .parallelStream()
+                    .map(subNode -> minimax(subNode, depth - 1, ((Board.GameState) board).advance(subNode.move()), mrXLocation))
+                    .min(Comparator.comparingDouble(Pair::getValue))
+                    .map(p -> new Pair<>(node.move(), p.getValue()))
+                    .orElseThrow();
         }
     }
 }

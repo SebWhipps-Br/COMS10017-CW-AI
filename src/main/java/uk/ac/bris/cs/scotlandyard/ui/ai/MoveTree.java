@@ -25,7 +25,7 @@ public class MoveTree {
                 .findFirst().orElseThrow().source(); // all the moves should start at the same position
 
         MoveTree root = new MoveTree(mrXLocation, new ArrayList<>());
-        generate(root, board, mrX, mrXLocation, depth, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY);
+        generate(root, board, mrX, depth);
 
         return root;
     }
@@ -35,7 +35,7 @@ public class MoveTree {
      * <p>
      * Alpha =
      */
-    public static void generate(MoveTree tree, Board.GameState board, Piece player, int source, int depth, Double alpha, Double beta) {
+    public static void generate(MoveTree tree, Board.GameState board, Piece player, int depth) {
         List<Move> moves = board.getAvailableMoves().stream().filter(move -> move.commencedBy().equals(player)).toList();
         List<Node> children = moves.stream()
                 .parallel()
@@ -52,9 +52,7 @@ public class MoveTree {
 
         Board.GameState newBoard = board.advance(startingAt);
 
-        List<Move> list = newBoard.getAvailableMoves().stream().toList();
-        List<Node> trees = list.stream()
-                .parallel()
+        List<Node> trees = newBoard.getAvailableMoves().parallelStream()
                 .map(move ->
                         new Node(move,
                                 generate(newBoard, move, depth - 1),
@@ -64,11 +62,7 @@ public class MoveTree {
     }
 
     public static Double getMoveScore(Board board, Move move) {
-        double score =  Dijkstra.dijkstraScore(getDetectiveDistances(board, move));
-        if(move instanceof Move.DoubleMove) {
-            return  score / 2;
-        }
-        return score;
+        return Dijkstra.dijkstraScore(getDetectiveDistances(board, move));
     }
 
     public static List<Integer> getDetectiveDistances(Board board, Move move) {
