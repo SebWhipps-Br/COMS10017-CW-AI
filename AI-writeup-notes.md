@@ -43,5 +43,7 @@ TODO: Talk about generating tree with all the detective just a single detective
 
 TODO: only use double moves when necessary
 
+TODO: remove secret moves from tree, then make the move secret if the best move is still bad.
+
 TODO: don't generate secret move trees, just replace a normal ticket with a secret move when applicable
 
