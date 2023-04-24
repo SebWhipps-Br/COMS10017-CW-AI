@@ -18,14 +18,14 @@ public class MoveTree {
         this.children = children;
     }
 
-    public static MoveTree generate(Board.GameState board, int depth) {
+    public static MoveTree generate(Board.GameState board, int depth, boolean allowDoubleMove) {
         Piece mrX = board.getPlayers().stream().filter(Piece::isMrX).findFirst().orElseThrow();
         int mrXLocation = board.getAvailableMoves().stream()
                 .filter(move -> move.commencedBy().isMrX())
                 .findFirst().orElseThrow().source(); // all the moves should start at the same position
 
         MoveTree root = new MoveTree(mrXLocation, new ArrayList<>());
-        generate(root, board, mrX, mrXLocation, depth, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY);
+        generate(root, board, mrX, mrXLocation, depth, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, allowDoubleMove);
 
         return root;
     }
@@ -35,31 +35,34 @@ public class MoveTree {
      * <p>
      * Alpha =
      */
-    public static void generate(MoveTree tree, Board.GameState board, Piece player, int source, int depth, Double alpha, Double beta) {
-        List<Move> moves = board.getAvailableMoves().stream().filter(move -> move.commencedBy().equals(player)).toList();
+    public static void generate(MoveTree tree, Board.GameState board, Piece player, int source, int depth, Double alpha, Double beta, boolean allowDoubleMove) {
+        List<Move> moves = board.getAvailableMoves().stream().filter(move -> move.commencedBy().equals(player))
+                .filter(move -> (!MyAi.checkDoubleMove(move) || allowDoubleMove)).toList(); //removes doubles if needed
         List<Node> children = moves.stream()
                 .parallel()
                 .filter(move -> move instanceof Move.SingleMove)
-                .map(move -> new Node(move, generate(board, move, depth - 1),
+                .map(move -> new Node(move, generate(board, move, depth - 1, allowDoubleMove),
                         getMoveScore(board, move)))
                 .toList();
         tree.children.addAll(children);
     }
 
-    public static MoveTree generate(Board.GameState board, Move startingAt, int depth) {
+    public static MoveTree generate(Board.GameState board, Move startingAt, int depth, boolean allowDoubleMove) {
         if (depth <= 0) {
             return new MoveTree(startingAt.source(), List.of());
         }
 
         Board.GameState newBoard = board.advance(startingAt);
 
-        List<Move> list = newBoard.getAvailableMoves().stream().toList();
+        List<Move> list = newBoard.getAvailableMoves().stream()
+                .filter(move -> (!MyAi.checkDoubleMove(move) || allowDoubleMove))
+                .toList();
         List<Node> trees = list.stream()
                 .parallel()
                 .filter(move -> move instanceof Move.SingleMove)
                 .map(move ->
                         new Node(move,
-                                generate(newBoard, move, depth - 1),
+                                generate(newBoard, move, depth - 1, allowDoubleMove),
                                 getMoveScore(board, move))).toList();
 
         return new MoveTree(startingAt.source(), trees);
