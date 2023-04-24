@@ -40,7 +40,9 @@ public class MyAi implements Ai {
         //dijkstra for each possible move
         int depth = 1;
         MoveTree tree = MoveTree.generate((Board.GameState) board, depth);
+        System.out.println("1");
         MiniMax miniMax = new MiniMax(board);
+        System.out.println("2");
         javafx.util.Pair<Move, Double> result = miniMax.minimax(null, tree, depth);
         return result.getKey();
     }

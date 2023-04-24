@@ -52,7 +52,7 @@ public class Dijkstra {
                 return Integer.compare(this.dist, o.dist);
             }
         }
-
+        System.out.println(source);
         Map<Integer, Integer> dist = new HashMap<>();
         Map<Integer, Integer> prev = new HashMap<>();
         PriorityQueue<NodeInfo> priorityQueue = new PriorityQueue<>();
