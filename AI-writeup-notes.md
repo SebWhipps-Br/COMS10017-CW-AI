@@ -38,3 +38,4 @@ We ended up using a combination of minimum and mean: `min(distances) + mean(dist
 TODO: generate tree semi-lazily, 
 
 TODO: Talk about generating tree with all the detective just a single detective
+    WHY DOES getPlayers() RETURN A Piece!!!
