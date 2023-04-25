@@ -28,7 +28,7 @@ public class MyAi implements Ai {
         try {
             return CompletableFuture.supplyAsync(
                             () -> pickGoodMove(board))
-                    .get(timeoutPair.left() - 1, timeoutPair.right());
+                    .get(timeoutPair.left() - 1, timeoutPair.right()); //gives enough time to make random move
         } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
         } catch (TimeoutException e) {
@@ -50,11 +50,10 @@ public class MyAi implements Ai {
                 .findFirst().orElseThrow().source();
         boolean doubleMoveAvailable = board.getAvailableMoves().stream()
                 .anyMatch(MoveUtil::checkDoubleMove);
-
         double currentPositionScore = Dijkstra.dijkstraScore(MoveTree.getDetectiveDistances(board, mrXLocation)); //an evaluation of the current position
         boolean allowDoubleMove = currentPositionScore < 2 && doubleMoveAvailable; //double move will occur in situations where detectives are less than a node away (mostly)
 
-        int depth = allowDoubleMove ? 3 : 5; // depth is dependent on doubles to avoid timout from a large tree
+        int depth = allowDoubleMove ? 3 : 5; // depth smaller for doubleMoves to avoid timeout from a large tree
         MiniMax miniMax = new MiniMax();
         return miniMax.minimaxRoot(true, (Board.GameState) board, depth, mrXLocation, allowDoubleMove).move();
     }

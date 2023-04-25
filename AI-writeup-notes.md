@@ -7,8 +7,13 @@ All the tests pass!
 
 ### MyGameStateFactory
 #### The advance() method:
-We used the visitor pattern in a private helper method called visitMrXMove
-...
+We used the visitor pattern in a private helper methods called `visitMrXMove()` and `visitDetectiveMove()`.
+
+
+`getPlayerForPiece()` was added also to get deal with the fact that pieces and players are separate.
+
+//What else do we write here?
+
 ### MyModelFactory
 #### The build() Method:
 registerObserver and unregisterObserver methods were made more complex by the usage of ImmutableSet<Observer>
@@ -16,6 +21,15 @@ since the set had to be reconstructed each time, rather than just altering the o
 
 
 ## AI Part ~ 2 pages
+
+#### AI planning
+//
+
+We decided that given the detectives' limited knowledge of the game state (they cannot see where Mr X currently is,
+they only know which tickets he used), detective AI couldn't be very complicated - the scoring function determines effectiveness of a move,
+but the detectives don't actually know how effective their move was. Adding proper scoring to the detective AI would give the effect of them cheating.
+Therefore, detective AI wasn't a priority when developing.
+However, for the sake of the min-max algorithm we decided calculated the best detective moves as if they were cheating.
 
 #### Constructing a game-tree
 We started by making a tree of all possible moves.
@@ -32,17 +46,6 @@ While not in our control, the immutability of Board made this a lot easier as we
 This was very inefficient - with a maximum depth of 3, the tree contained over sixty-thousand nodes and took ~5 seconds to generate. 
 While we didn't want to prematurely optimise, we knew some sort of pruning was going to be very important.
 
-
-
-#### AI planning
-// 
-
-We decided that given the detectives' limited knowledge of the game state (they cannot see where Mr X currently is,
-they only know which tickets he used), detective AI couldn't be very complicated - the scoring function determines effectiveness of a move, 
-but the detectives don't actually know how effective their move was. Adding proper scoring to the detective AI would give the effect of them cheating. 
-Therefore, detective AI wasn't a priority when developing.
-However, for the sake of the min-max algorithm we decided calculated the best detective moves as if they were cheating.
-
 #### Scoring Function
 Research on the minimax and alpha-beta pruning algorithms led us to decide that we needed a scoring function, to evaluate the effectiveness of any given move.
 
@@ -57,14 +60,15 @@ Determining an algorithm to combine these numbers into a single score was a litt
 We ended up using a combination of minimum and mean: `min(distances) + mean(distances) / 10`. In this situation this gives an output of `1.684`
 
 An issue we discovered with this scoring system was that since Mr.X is just aiming to be as far away from the detectives as possible,
-he often ends up in the corner of the map and then it is fairly difficult for him to escape once the detectives get close.
+he often ends up in the corner of the map, then it is fairly difficult for him to escape once the detectives get close.
 So to stop him going towards the corners we could add a pre-calculated value for each location,
 which is based on their distance from the centre of the board, the number of adjacent locations and the tickets that can be used to move from that location
 
 We could also consider the value of tickets and how many we have remaining, this would probably make a better scoring function,
-however theoretically a tree of infinite depth would factor this in already, due to the fact we are using 'board.getAvailableMoves()' which will only return moves possible at the potential board state that we are evaluating,
+however theoretically a tree of infinite depth would factor this in already, due to the fact we are using `board#getAvailableMoves()` which will only return moves possible at the potential board state that we are evaluating,
 therefore we decided that a better idea would be to increase the efficiency and allow us more depth in our gameTree
 
+#### Mini-Max
 
 #### Optimisations
 After initially generating a huge game tree, we realised there were several optimisations to reduce the size of the tree without losing depth:

@@ -20,10 +20,6 @@ public class MoveUtil {
         }
     };
 
-    private MoveUtil() {
-
-    }
-
     public static int moveDestination(Move move) {
         return move.accept(destinationChecker);
     }

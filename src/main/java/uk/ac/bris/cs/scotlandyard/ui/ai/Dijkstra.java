@@ -25,7 +25,6 @@ public class Dijkstra {
         // create a set of all the possible moves
         for (Move availableMove : board.getAvailableMoves()) {
             if (availableMove instanceof Move.SingleMove singleMove) {
-
                 possibleMoves.add(
                         new Pair<>(EndpointPair.unordered(singleMove.source(), singleMove.destination), availableMove.tickets()));
             }
@@ -36,7 +35,7 @@ public class Dijkstra {
             }
         }
 
-        // go over the graph and remove any *im*possible moves
+        // build graph of possible moves
         MutableValueGraph<Integer, ImmutableSet<ScotlandYard.Ticket>> possibleMovesGraph = ValueGraphBuilder.undirected().build();
         for (Pair<EndpointPair<Integer>, Iterable<ScotlandYard.Ticket>> possibleMove : possibleMoves) {
             possibleMovesGraph.putEdgeValue(possibleMove.getKey(), ImmutableSet.copyOf(possibleMove.getValue()));
@@ -46,7 +45,6 @@ public class Dijkstra {
         }
 
         return possibleMovesGraph;
-
     }
 
     /*
@@ -68,14 +66,12 @@ public class Dijkstra {
 
         }
 
-
-        Map<Integer, Integer> dist = new HashMap<>();
-        Map<Integer, Integer> prev = new HashMap<>();
-
         if (graph.edges().isEmpty()) {
             throw new IllegalArgumentException("Graph contains no possible moves");
         }
 
+        Map<Integer, Integer> dist = new HashMap<>();
+        Map<Integer, Integer> prev = new HashMap<>();
         dist.put(source, 0);
 
         PriorityQueue<NodeInfo> priorityQueue = new PriorityQueue<>();
