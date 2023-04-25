@@ -78,7 +78,7 @@ public class MiniMax {
         if (isMrX) { //maximising player, thus maximise the minimum distance
             return node.child().getChildren()
                     .parallelStream()
-                    .map(subNode -> minimax(subNode, depth - 1, ((Board.GameState) board).advance(subNode.move()), subNode.move().accept(MoveUtil.destinationChecker)))
+                    .map(subNode -> minimax(subNode, depth - 1, ((Board.GameState) board).advance(subNode.move()), MoveUtil.moveDestination(subNode.move())))
                     .max(Comparator.comparingDouble(MinimaxResult::score))
                     .map(p -> new MinimaxResult(node.move(), p.score()))
                     .orElseThrow();
