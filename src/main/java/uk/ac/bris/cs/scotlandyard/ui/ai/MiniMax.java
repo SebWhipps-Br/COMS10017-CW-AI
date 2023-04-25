@@ -40,7 +40,7 @@ public class MiniMax {
         return currentMrXLocation;
     }
 
-    public MinimaxResult minimaxRoot(boolean isMrX, GameState root, int depth, int mrXLocation) {
+    public MinimaxResult minimaxRoot(boolean isMrX, GameState root, int depth, int mrXLocation, boolean allowDoubleMoves) {
         ImmutableSet<Move> availableMoves = root.getAvailableMoves();
         if (availableMoves.isEmpty()) {
             throw new IllegalArgumentException("No available moves");
@@ -48,7 +48,7 @@ public class MiniMax {
 
 
         // We are Mr X, so we want to maximise our first move
-        return minimax(isMrX, availableMoves, null, root, depth, mrXLocation, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, ConsList.empty());
+        return minimax(isMrX, availableMoves, null, root, depth, mrXLocation, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, ConsList.empty(), allowDoubleMoves);
     }
 
 
@@ -64,7 +64,7 @@ public class MiniMax {
      * @param beta             current beta value
      * @return a pair of move and score evaluating the effectiveness of this move
      */
-    public MinimaxResult minimax(boolean isMrX, Collection<Move> alternativeMoves, @Nullable Move move, GameState node, int depth, int mrXLocation, double alpha, double beta, ConsList<Move> moves) {
+    public MinimaxResult minimax(boolean isMrX, Collection<Move> alternativeMoves, @Nullable Move move, GameState node, int depth, int mrXLocation, double alpha, double beta, ConsList<Move> moves, boolean allowDoubleMoves) {
         //base case:
         if (depth <= 0 || node.getAvailableMoves().isEmpty()) {
             if (move == null) {
@@ -74,7 +74,10 @@ public class MiniMax {
             return new MinimaxResult(head, calculateScore(head.commencedBy().isMrX(), alternativeMoves, head, node));
         }
 
-        ImmutableSet<Move> availableMoves = node.getAvailableMoves();
+        Collection<Move> availableMoves = node.getAvailableMoves()
+                .stream()
+                .filter(m -> !MoveUtil.checkDoubleMove(m) || allowDoubleMoves) //removes doubles if needed
+                .toList();
         if (isMrX && availableMoves.stream().allMatch(m -> m.commencedBy().isDetective())) {
             throw new IllegalArgumentException("isMrX = true but only available moves are detective ones");
         }
@@ -88,7 +91,7 @@ public class MiniMax {
             for (Move subMove : availableMoves) {
                 GameState nextBoard = node.advance(subMove);
 
-                var res = minimax(false, availableMoves, subMove, nextBoard, depth - 1, getMrXLocationAfter(mrXLocation, subMove), alpha, beta, moves.prepend(subMove));
+                var res = minimax(false, availableMoves, subMove, nextBoard, depth - 1, getMrXLocationAfter(mrXLocation, subMove), alpha, beta, moves.prepend(subMove), allowDoubleMoves);
                 value = value == null ? res : max(value, res);
                 alpha = Math.max(alpha, value.score());
 
@@ -101,7 +104,7 @@ public class MiniMax {
                 GameState nextBoard = node.advance(subMove);
                 boolean isMrXNow = nextBoard.getAvailableMoves().stream().anyMatch(m -> m.commencedBy().isMrX()); // there are multiple detectives, so we can't just assume it will be mr x's turn afterwards
 
-                var res = minimax(isMrXNow, availableMoves, subMove, nextBoard, depth - 1, getMrXLocationAfter(mrXLocation, subMove), alpha, beta, moves.prepend(subMove));
+                var res = minimax(isMrXNow, availableMoves, subMove, nextBoard, depth - 1, getMrXLocationAfter(mrXLocation, subMove), alpha, beta, moves.prepend(subMove), allowDoubleMoves);
                 value = value == null ? res : min(value, res);
                 beta = Math.min(beta, value.score());
 

@@ -56,7 +56,7 @@ public class MyAi implements Ai {
 
         int depth = allowDoubleMove ? 4 : 8; // depth is dependent on doubles to avoid timout from a large tree
         MiniMax miniMax = new MiniMax();
-        return miniMax.minimaxRoot(true, (Board.GameState) board, depth, mrXLocation).move();
+        return miniMax.minimaxRoot(true, (Board.GameState) board, depth, mrXLocation, allowDoubleMove).move();
     }
 
     /**
