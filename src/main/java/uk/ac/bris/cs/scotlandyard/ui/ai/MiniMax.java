@@ -5,9 +5,11 @@ import uk.ac.bris.cs.scotlandyard.model.Board;
 import uk.ac.bris.cs.scotlandyard.model.Board.GameState;
 import uk.ac.bris.cs.scotlandyard.model.Move;
 import uk.ac.bris.cs.scotlandyard.model.Piece;
+import uk.ac.bris.cs.scotlandyard.model.ScotlandYard;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.stream.StreamSupport;
 
 public class MiniMax {
 
@@ -76,6 +78,7 @@ public class MiniMax {
 
         Collection<Move> availableMoves = node.getAvailableMoves()
                 .stream()
+                .filter(m -> StreamSupport.stream(m.tickets().spliterator(), false).allMatch(t -> t != ScotlandYard.Ticket.SECRET)) // TODO be smarter about secret ticket usage
                 .filter(m -> !MoveUtil.checkDoubleMove(m) || allowDoubleMoves) //removes doubles if needed
                 .toList();
         if (isMrX && availableMoves.stream().allMatch(m -> m.commencedBy().isDetective())) {
