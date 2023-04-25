@@ -4,12 +4,9 @@ import io.atlassian.fugue.Pair;
 import uk.ac.bris.cs.scotlandyard.model.Ai;
 import uk.ac.bris.cs.scotlandyard.model.Board;
 import uk.ac.bris.cs.scotlandyard.model.Move;
-import uk.ac.bris.cs.scotlandyard.model.Piece;
 
 import javax.annotation.Nonnull;
-import java.util.HashSet;
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -30,7 +27,7 @@ public class MyAi implements Ai {
             Pair<Long, TimeUnit> timeoutPair) {
         try {
             return CompletableFuture.supplyAsync(
-                    () -> pickGoodMove(board))
+                            () -> pickGoodMove(board))
                     .get(timeoutPair.left() - 1, timeoutPair.right());
         } catch (ExecutionException | InterruptedException e) {
             throw new RuntimeException(e);
@@ -42,10 +39,11 @@ public class MyAi implements Ai {
 
     /**
      * takes a given board and uses a gameTree, Dijkstra's shortest path and a MiniMax to pick a good move
+     *
      * @param board for the given gameState
      * @return a move
      */
-    private Move pickGoodMove(Board board){
+    private Move pickGoodMove(Board board) {
         int mrXLocation = board.getAvailableMoves()
                 .stream()
                 .filter(m -> m.commencedBy().isMrX())
@@ -57,17 +55,17 @@ public class MyAi implements Ai {
         boolean allowDoubleMove = currentPositionScore < 2 && doubleMoveAvailable; //double move will occur in situations where detectives are less than a node away (mostly)
 
         int depth = allowDoubleMove ? 4 : 8; // depth is dependent on doubles to avoid timout from a large tree
-        MoveTree tree = MoveTree.generateRootTree((Board.GameState) board, depth, allowDoubleMove);
         MiniMax miniMax = new MiniMax();
-        return miniMax.minimax(tree, depth, board, mrXLocation).move();
+        return miniMax.minimaxRoot(true, (Board.GameState) board, depth, mrXLocation).move();
     }
 
     /**
      * random move generator
+     *
      * @param board for the given gameState
      * @return move
      */
-    private Move pickRandomMove(Board board){
+    private Move pickRandomMove(Board board) {
         var moves = board.getAvailableMoves().asList();
         return moves.get(new Random().nextInt(moves.size()));
     }
