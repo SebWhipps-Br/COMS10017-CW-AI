@@ -81,6 +81,7 @@ public class MiniMax {
                 .filter(m -> StreamSupport.stream(m.tickets().spliterator(), false).allMatch(t -> t != ScotlandYard.Ticket.SECRET)) // TODO be smarter about secret ticket usage
                 .filter(m -> !MoveUtil.checkDoubleMove(m) || allowDoubleMoves) //removes doubles if needed
                 .toList();
+
         if (isMrX && availableMoves.stream().allMatch(m -> m.commencedBy().isDetective())) {
             throw new IllegalArgumentException("isMrX = true but only available moves are detective ones");
         }
