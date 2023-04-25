@@ -44,7 +44,7 @@ public class MiniMax {
                 .orElseThrow();
     }
 
-    private double calculateScore(boolean isMrX, Move move, Board board) {
+    private double calculateScore(boolean isMrX, MoveTree.Node node, Board board) {
         if (isMrX) {
             if (board.getWinner().stream().anyMatch(Piece::isDetective)) { // if the detectives win
                 return Double.NEGATIVE_INFINITY; // that's very bad for mr x!
@@ -52,7 +52,7 @@ public class MiniMax {
             if (board.getWinner().contains(Piece.MrX.MRX)) { // if mr x wins
                 return Double.POSITIVE_INFINITY; // that's very good for him
             }
-            return MoveTree.getMoveScore(board, move);
+            return node.score();
         } else {
             if (board.getWinner().contains(Piece.MrX.MRX)) {// if mr x wins
                 return Double.NEGATIVE_INFINITY; // very bad score for detectives
@@ -60,7 +60,7 @@ public class MiniMax {
             if (board.getWinner().stream().anyMatch(Piece::isDetective)) { // if the detectives win
                 return Double.POSITIVE_INFINITY; // that's very good for the detectives
             }
-            double score = MoveTree.getMoveScore(board, move);
+            double score = node.score();
             return -score; // The detectives want to get as close to Mr x as possible, so a higher score (further away) is worse for them
         }
     }
@@ -71,7 +71,7 @@ public class MiniMax {
 
         //base case:
         if (depth <= 0 || node.child().getChildren().isEmpty()) {
-            return new MinimaxResult(node.move(), calculateScore(isMrX, node.move(), board));
+            return new MinimaxResult(node.move(), calculateScore(isMrX, node, board));
         }
 
 
