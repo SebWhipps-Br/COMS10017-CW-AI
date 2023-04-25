@@ -24,6 +24,20 @@ public class MyAi implements Ai {
         return detectiveLocations;
     }
 
+    public static boolean checkDoubleMove(Move move) {
+        Move.Visitor<Boolean> doubleMoveChecker = new Move.Visitor<>() {
+            @Override
+            public Boolean visit(Move.SingleMove move) {
+                return false;
+            }
+
+            @Override
+            public Boolean visit(Move.DoubleMove move) {
+                return true;
+            }
+        };
+        return move.accept(doubleMoveChecker);
+    }
 
     @Nonnull
     @Override
@@ -54,30 +68,16 @@ public class MyAi implements Ai {
         }
         //
         //dijkstra for each possible move
-        int depth = 4;
-        MoveTree tree = MoveTree.generateRootTree((Board.GameState) board, depth, allowDoubleMove);
+        int depth = 10;
         System.out.println("1");
         MiniMax miniMax = new MiniMax();
         System.out.println("2");
-         // all the moves should start at the same position
+        // all the moves should start at the same position
 
         System.out.println(board.getAvailableMoves());
-        return miniMax.minimax(tree, depth, board, mrXLocation).move();
-    }
-
-    public static boolean checkDoubleMove(Move move) {
-        Move.Visitor<Boolean> doubleMoveChecker = new Move.Visitor<>() {
-            @Override
-            public Boolean visit(Move.SingleMove move) {
-                return false;
-            }
-
-            @Override
-            public Boolean visit(Move.DoubleMove move) {
-                return true;
-            }
-        };
-        return move.accept(doubleMoveChecker);
+        MiniMax.MinimaxResult minimaxResult = miniMax.minimaxRoot((Board.GameState) board, depth, mrXLocation);
+        System.out.println(minimaxResult);
+        return minimaxResult.move();
     }
 
 

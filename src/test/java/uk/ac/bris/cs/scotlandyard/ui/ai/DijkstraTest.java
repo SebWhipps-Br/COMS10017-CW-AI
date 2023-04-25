@@ -29,10 +29,8 @@ public class DijkstraTest {
 
         int depth = 10;
         final Model model = modelFactory.build(new GameSetup(ScotlandYard.standardGraph(), STANDARD24MOVES), mrX, red, green, blue, white, yellow);
-        MoveTree generate = MoveTree.generateRootTree((Board.GameState) model.getCurrentBoard(), depth, true);
-        System.out.println(generate.size());
 
-        MiniMax.MinimaxResult minimax = new MiniMax().minimax(generate, depth, model.getCurrentBoard(), mrX.location());
+        MiniMax.MinimaxResult minimax = new MiniMax().minimaxRoot((Board.GameState) model.getCurrentBoard(), depth, mrX.location());
         System.out.println(minimax);
     }
 

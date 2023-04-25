@@ -21,23 +21,7 @@ public class MoveTree {
         this.children = children;
     }
 
-    /**
-     * Generates the root tree from a board. It must be Mr X's turn
-     *
-     * @param board the board
-     * @param depth the max depth of the tree
-     * @return the tree
-     */
-    public static MoveTree generateRootTree(Board.GameState board, int depth, boolean allowDoubleMove) {
 
-        int mrXLocation = board.getAvailableMoves().stream()
-                .filter(move -> move.commencedBy().isMrX())
-                .findAny()
-                .orElseThrow()
-                .source(); // all the moves should start at the same position
-
-        return new MoveTree(mrXLocation, generate(board, depth, allowDoubleMove));
-    }
 
 
     /**
