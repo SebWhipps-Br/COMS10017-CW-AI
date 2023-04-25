@@ -1,12 +1,21 @@
 # Scotland Yard Report
 
-## What has been done
-
-### Model Part ~ 1 page
+## Model Part ~ 1 page
 
 All the tests pass!
 
-### AI Part ~ 3 pages
+### MyGameStateFactory
+#### The advance() method:
+We used the visitor pattern in a private helper method called visitMrXMove
+...
+### MyModelFactory
+#### The build() Method:
+registerObserver and unregisterObserver methods were made more complex by the usage of ImmutableSet<Observer>
+since the set had to be reconstructed each time, rather than just altering the original set
+
+
+## AI Part ~ 2 pages
+
 
 We started by making a tree of all possible moves. Initially, for faster prototyping we had to rely on some implementation detail, by casting
 the `Board` to a `Board.GameState` to get access to the `advance(Move)` method. This meant that we could build the tree quite easily:
@@ -34,16 +43,39 @@ Determining an algorithm to combine these numbers into a single score was a litt
 
 We ended up using a combination of minimum and mean: `min(distances) + mean(distances) / 10`. In this situation this gives an output of `1.684`
 
+An issue we discovered with this scoring system was that since Mr.X is just aiming to be as far away from the detectives as possible,
+he often ends up in the corner of the map and then it is fairly difficult for him to escape once the detectives get close.
+So to stop him going towards the corners we could add a pre-calculated value for each location,
+which is based on their distance from the centre of the board, the number of adjacent locations and the tickets that can be used to move from that location
+
+We could also consider the value of tickets and how many we have remaining, this would probably make a better scoring function,
+however theoretically a tree of infinite depth would factor this in already, due to the fact we are using 'board.getAvailableMoves()' which will only return moves possible at the potential board state that we are evaluating,
+therefore we decided that a better idea would be to increase the efficiency and allow us more depth in our gameTree
+
+After initially generating a huge game tree, we realised there were several optimisations to reduce the size of the tree without losing depth:
+* Removing double moves from the tree when the Mr.X isn't too close to the detectives.
+  * We could also not consider single moves at all when Mr.X is close to losing, but single moves may be more effective when Mr.X is in a corner, and there aren't that many of them anyway
+* Removing secret moves from the tree, since they are just duplicates of other moves, then a secret move can be made when the best move for Mr.X is still not great.
+
+Additionally
+
+Constructing a tree:
+We looked at other examples of making a game-tree for two player games and adapted these concepts for Scotland Yard.
+So when constructing a tree we had a decision to make, do we consider all detectives separately (one after the other) or group there moves together.
+//Insert a diagram of tree
 
 Optimizations: 
 TODO: generate tree semi-lazily, 
 
-TODO: Talk about generating tree with all the detective just a single detective
+
     WHY DOES getPlayers() RETURN A Piece!!!
 
-TODO: only use double moves when necessary
+### Potential Further Improvements
 
-TODO: remove secret moves from tree, then make the move secret if the best move is still bad.
+Using a dynamic tree depth: 
+  Let the best move be calculated for as long as possible before the move timeout, with no predetermined depth.
+  This would help because it would get the maximum depth possible for each turn, currently the depth is fixed and some moves happen quickly and some slowly.
 
-TODO: don't generate secret move trees, just replace a normal ticket with a secret move when applicable
+Use a tree memory system, where the tree is generated with up until the maximum time to make a move and then a move is made. The subtree from which the move is made is remembered and stored.
+Then on the next turn you can pick up from here remove the branches that are now impossible due to the detectives moves, then continue building the tree for as much time as possible before making another move
 

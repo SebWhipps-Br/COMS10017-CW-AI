@@ -52,7 +52,7 @@ public class MoveUtil {
         Set<Integer> detectiveLocations = new HashSet<>();
         for (Piece piece : board.getPlayers()) {
             if (piece.isDetective()) {
-                detectiveLocations.add(board.getDetectiveLocation((Piece.Detective) piece).get());
+                detectiveLocations.add(board.getDetectiveLocation((Piece.Detective) piece).orElseThrow());
             }
         }
         return detectiveLocations;
