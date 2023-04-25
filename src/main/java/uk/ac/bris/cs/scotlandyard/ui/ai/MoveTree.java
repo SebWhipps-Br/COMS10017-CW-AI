@@ -50,7 +50,7 @@ public class MoveTree {
         ImmutableSet<Move> availableMoves = board.getAvailableMoves();
         return availableMoves
                 .parallelStream()
-                .filter(move -> !MyAi.checkDoubleMove(move) || allowDoubleMove) //removes doubles if needed
+                .filter(move -> !MoveUtil.checkDoubleMove(move) || allowDoubleMove) //removes doubles if needed
                 .filter(m -> StreamSupport.stream(m.tickets().spliterator(), false).allMatch(t -> t != ScotlandYard.Ticket.SECRET)) // TODO be smarter about secret ticket usage
                 .map(move -> new Node(move, generate(board, move, depth - 1, allowDoubleMove), getMoveScore(board, availableMoves, move)))
                 .toList();

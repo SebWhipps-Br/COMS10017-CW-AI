@@ -17,22 +17,10 @@ import java.util.concurrent.TimeoutException;
 
 public class MyAi implements Ai {
 
-
-    private static Set<Integer> getDetectiveLocations(Board board) {
-        Set<Integer> detectiveLocations = new HashSet<>();
-        for (Piece piece : board.getPlayers()) {
-            if (piece.isDetective()) {
-                detectiveLocations.add(board.getDetectiveLocation((Piece.Detective) piece).get());
-            }
-        }
-        return detectiveLocations;
-    }
-
-
     @Nonnull
     @Override
     public String name() {
-        return "Dijkstratron";
+        return "Dijkstra-tron";
     }
 
     @Nonnull
@@ -51,49 +39,36 @@ public class MyAi implements Ai {
             return pickRandomMove(board);
         }
     }
-        private Move pickGoodMove(Board board){
+
+    /**
+     * takes a given board and uses a gameTree, Dijkstra's shortest path and a MiniMax to pick a good move
+     * @param board for the given gameState
+     * @return a move
+     */
+    private Move pickGoodMove(Board board){
         int mrXLocation = board.getAvailableMoves()
                 .stream()
                 .filter(m -> m.commencedBy().isMrX())
                 .findFirst().orElseThrow().source();
         boolean doubleMoveAvailable = board.getAvailableMoves().stream()
-                .anyMatch(MyAi::checkDoubleMove);
+                .anyMatch(MoveUtil::checkDoubleMove);
 
-        double currentPositionScore = Dijkstra.dijkstraScore(MoveTree.getDetectiveDistances(board, mrXLocation));
+        double currentPositionScore = Dijkstra.dijkstraScore(MoveTree.getDetectiveDistances(board, mrXLocation)); //an evaluation of the current position
+        boolean allowDoubleMove = currentPositionScore < 2 && doubleMoveAvailable; //double move will occur in situations where detectives are less than a node away (mostly)
 
-        boolean allowDoubleMove = currentPositionScore < 2 && doubleMoveAvailable;
-
-        //dijkstra for each possible move
-        int depth = allowDoubleMove ? 4 : 8;
+        int depth = allowDoubleMove ? 4 : 8; // depth is dependent on doubles to avoid timout from a large tree
         MoveTree tree = MoveTree.generateRootTree((Board.GameState) board, depth, allowDoubleMove);
-        System.out.println("1");
         MiniMax miniMax = new MiniMax();
-        System.out.println("2");
-         // all the moves should start at the same position
-
-        System.out.println("tree size" + tree.size());
         return miniMax.minimax(tree, depth, board, mrXLocation).move();
     }
 
+    /**
+     * random move generator
+     * @param board for the given gameState
+     * @return move
+     */
     private Move pickRandomMove(Board board){
         var moves = board.getAvailableMoves().asList();
         return moves.get(new Random().nextInt(moves.size()));
     }
-
-    public static boolean checkDoubleMove(Move move) {
-        Move.Visitor<Boolean> doubleMoveChecker = new Move.Visitor<>() {
-            @Override
-            public Boolean visit(Move.SingleMove move) {
-                return false;
-            }
-
-            @Override
-            public Boolean visit(Move.DoubleMove move) {
-                return true;
-            }
-        };
-        return move.accept(doubleMoveChecker);
-    }
-
-
 }
