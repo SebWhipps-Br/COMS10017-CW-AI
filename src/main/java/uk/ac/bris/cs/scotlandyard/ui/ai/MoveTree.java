@@ -1,10 +1,12 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
 
+import com.google.common.collect.ImmutableSet;
 import uk.ac.bris.cs.scotlandyard.model.Board;
 import uk.ac.bris.cs.scotlandyard.model.Move;
 import uk.ac.bris.cs.scotlandyard.model.Piece;
 import uk.ac.bris.cs.scotlandyard.model.ScotlandYard;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.StreamSupport;
@@ -45,11 +47,12 @@ public class MoveTree {
         if (depth <= 0) {
             return List.of();
         }
-        return board.getAvailableMoves()
+        ImmutableSet<Move> availableMoves = board.getAvailableMoves();
+        return availableMoves
                 .parallelStream()
                 .filter(move -> !MyAi.checkDoubleMove(move) || allowDoubleMove) //removes doubles if needed
                 .filter(m -> StreamSupport.stream(m.tickets().spliterator(), false).allMatch(t -> t != ScotlandYard.Ticket.SECRET)) // TODO be smarter about secret ticket usage
-                .map(move -> new Node(move, generate(board, move, depth - 1, allowDoubleMove), getMoveScore(board, move)))
+                .map(move -> new Node(move, generate(board, move, depth - 1, allowDoubleMove), getMoveScore(board, availableMoves, move)))
                 .toList();
     }
 
@@ -76,8 +79,18 @@ public class MoveTree {
     }
 
 
-    public static double getMoveScore(Board board, Move move) {
-        return Dijkstra.dijkstraScore(getDetectiveDistances(board, move));
+    public static double getMoveScore(Board board, Collection<Move> possibleMoves, Move move) {
+        int destination = MoveUtil.moveDestination(move);
+        double score = Dijkstra.dijkstraScore(getDetectiveDistances(board, move));
+
+        if (move instanceof Move.DoubleMove && possibleMoves.stream() // if we can get to the same destination using a single move
+                .filter(m -> m instanceof Move.SingleMove) // then we should heavily punish using a double move
+                .filter(m -> m.commencedBy().equals(move.commencedBy()))
+                .anyMatch(m -> MoveUtil.moveDestination(m) == destination)) {
+            return score / 10;
+        }
+
+        return score;
         /*
          TODO: consider double moves, secret tickets, etc.
             also consider his position (eg dont want to get cornered), and if he has to reveal his move on a turn or not
