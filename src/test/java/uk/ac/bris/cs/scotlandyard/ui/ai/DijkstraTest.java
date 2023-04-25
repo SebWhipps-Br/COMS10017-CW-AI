@@ -26,10 +26,9 @@ public class DijkstraTest {
         var green = new Player(GREEN, defaultDetectiveTickets(), 29);
         var blue = new Player(BLUE, defaultDetectiveTickets(), 94);
         var white = new Player(WHITE, defaultDetectiveTickets(), 50);
-        var yellow = new Player(YELLOW, defaultDetectiveTickets(), 138);
 
-        int depth = 4;
-        final Model model = modelFactory.build(new GameSetup(ScotlandYard.standardGraph(), STANDARD24MOVES), mrX, red, green, blue, white, yellow);
+        int depth = 3;
+        final Model model = modelFactory.build(new GameSetup(ScotlandYard.standardGraph(), STANDARD24MOVES), mrX, red, green, blue, white);
 
         MiniMax miniMax = new MiniMax();
 
@@ -44,6 +43,18 @@ public class DijkstraTest {
         Board.GameState advance2 = advance.advance(minimax2.move());
         MiniMax.MinimaxResult minimax3 = miniMax.minimaxRoot(false, advance2, depth, mrX.location(), false);
         assertTrue("Third move must be done by Detective", minimax3.move().commencedBy().isDetective());
+
+        Board.GameState advance3 = advance2.advance(minimax3.move());
+        MiniMax.MinimaxResult minimax4 = miniMax.minimaxRoot(false, advance3, depth, mrX.location(), false);
+        assertTrue("Fourth move must be done by Detective", minimax4.move().commencedBy().isDetective());
+
+        Board.GameState advance4 = advance3.advance(minimax4.move());
+        MiniMax.MinimaxResult minimax5 = miniMax.minimaxRoot(false, advance4, depth, mrX.location(), false);
+        assertTrue("Fifth move must be done by Detective", minimax5.move().commencedBy().isDetective());
+
+        Board.GameState advance5 = advance4.advance(minimax5.move());
+        MiniMax.MinimaxResult minimax6 = miniMax.minimaxRoot(true, advance5, depth, mrX.location(), false);
+        assertTrue("Sixth move must be done by Mr X", minimax6.move().commencedBy().isMrX());
     }
 
     @Test
