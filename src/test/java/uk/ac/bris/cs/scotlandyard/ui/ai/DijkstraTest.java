@@ -27,10 +27,13 @@ public class DijkstraTest {
         var white = new Player(WHITE, defaultDetectiveTickets(), 50);
         var yellow = new Player(YELLOW, defaultDetectiveTickets(), 138);
 
+        int depth = 10;
         final Model model = modelFactory.build(new GameSetup(ScotlandYard.standardGraph(), STANDARD24MOVES), mrX, red, green, blue, white, yellow);
-        MoveTree generate = MoveTree.generateRootTree((Board.GameState) model.getCurrentBoard(), 5, true);
+        MoveTree generate = MoveTree.generateRootTree((Board.GameState) model.getCurrentBoard(), depth, true);
         System.out.println(generate.size());
 
+        MiniMax.MinimaxResult minimax = new MiniMax().minimax(generate, depth, model.getCurrentBoard(), mrX.location());
+        System.out.println(minimax);
     }
 
     @Test
@@ -48,6 +51,6 @@ public class DijkstraTest {
 
         var shortestPath = Dijkstra.pureDijkstra(ImmutableValueGraph.copyOf(graph), i -> i, 1);
 
-        assertEquals(shortestPath, Map.of(1, 0, 2, 1, 3,2 ));
+        assertEquals(shortestPath, Map.of(1, 0, 2, 1, 3, 2));
     }
 }
