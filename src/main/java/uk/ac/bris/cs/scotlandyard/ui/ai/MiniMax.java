@@ -90,31 +90,41 @@ public class MiniMax {
         }
 
 
-        MinimaxResult value = null;
         if (isMrX) { //maximising player, thus maximise the minimum distance
-            for (Move subMove : availableMoves) {
-                GameState nextBoard = node.advance(subMove);
-
-                var res = minimax(false, availableMoves, subMove, nextBoard, depth - 1, getMrXLocationAfter(mrXLocation, subMove), alpha, beta, moves.prepend(subMove), allowDoubleMoves);
-                value = value == null ? res : max(value, res);
-                alpha = Math.max(alpha, value.score());
-
-                if (value.score() >= beta) {
-                    break; // beta cutoff
-                }
-            }
+            return maximise(node, depth, mrXLocation, alpha, beta, moves, allowDoubleMoves, availableMoves);
         } else { //detective, thus minimise the maximum distance
-            for (Move subMove : availableMoves) {
-                GameState nextBoard = node.advance(subMove);
-                boolean isMrXNow = nextBoard.getAvailableMoves().stream().anyMatch(m -> m.commencedBy().isMrX()); // there are multiple detectives, so we can't just assume it will be mr x's turn afterwards
+            return minimise(node, depth, mrXLocation, alpha, beta, moves, allowDoubleMoves, availableMoves);
+        }
+    }
 
-                var res = minimax(isMrXNow, availableMoves, subMove, nextBoard, depth - 1, getMrXLocationAfter(mrXLocation, subMove), alpha, beta, moves.prepend(subMove), allowDoubleMoves);
-                value = value == null ? res : min(value, res);
-                beta = Math.min(beta, value.score());
+    private MinimaxResult minimise(GameState node, int depth, int mrXLocation, double alpha, double beta, ConsList<Move> moves, boolean allowDoubleMoves, Collection<Move> availableMoves) {
+        MinimaxResult value = null;
+        for (Move subMove : availableMoves) {
+            GameState nextBoard = node.advance(subMove);
+            boolean isMrXNow = nextBoard.getAvailableMoves().stream().anyMatch(m -> m.commencedBy().isMrX()); // there are multiple detectives, so we can't just assume it will be mr x's turn afterwards
 
-                if (value.score() <= alpha) {
-                    break; // alpha cutoff
-                }
+            var res = minimax(isMrXNow, availableMoves, subMove, nextBoard, depth - 1, getMrXLocationAfter(mrXLocation, subMove), alpha, beta, moves.prepend(subMove), allowDoubleMoves);
+            value = value == null ? res : min(value, res);
+            beta = Math.min(beta, value.score());
+
+            if (value.score() <= alpha) {
+                break; // alpha cutoff
+            }
+        }
+        return value;
+    }
+
+    private MinimaxResult maximise(GameState node, int depth, int mrXLocation, double alpha, double beta, ConsList<Move> moves, boolean allowDoubleMoves, Collection<Move> availableMoves) {
+        MinimaxResult value = null;
+        for (Move subMove : availableMoves) {
+            GameState nextBoard = node.advance(subMove);
+
+            var res = minimax(false, availableMoves, subMove, nextBoard, depth - 1, getMrXLocationAfter(mrXLocation, subMove), alpha, beta, moves.prepend(subMove), allowDoubleMoves);
+            value = value == null ? res : max(value, res);
+            alpha = Math.max(alpha, value.score());
+
+            if (value.score() >= beta) {
+                break; // beta cutoff
             }
         }
         return value;

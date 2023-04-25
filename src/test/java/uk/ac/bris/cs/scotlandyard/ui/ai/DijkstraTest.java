@@ -27,7 +27,7 @@ public class DijkstraTest {
         var blue = new Player(BLUE, defaultDetectiveTickets(), 94);
         var white = new Player(WHITE, defaultDetectiveTickets(), 50);
 
-        int depth = 3;
+        int depth = 6;
         final Model model = modelFactory.build(new GameSetup(ScotlandYard.standardGraph(), STANDARD24MOVES), mrX, red, green, blue, white);
 
         MiniMax miniMax = new MiniMax();
