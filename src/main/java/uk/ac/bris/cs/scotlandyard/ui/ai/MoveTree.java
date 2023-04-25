@@ -22,8 +22,6 @@ public class MoveTree {
     }
 
 
-
-
     /**
      * Generates a subtree of possible moves based on all the moves that can be made
      */
@@ -63,14 +61,14 @@ public class MoveTree {
     }
 
 
-    public static double getMoveScore(Board board, Collection<Move> possibleMoves, Move move) {
+    public static double getMoveScore(Board board, Collection<Move> alternativeMoves, Move move) {
         int destination = MoveUtil.moveDestination(move);
         double score = Dijkstra.dijkstraScore(getDetectiveDistances(board, move));
 
-        if (move instanceof Move.DoubleMove && possibleMoves.stream() // if we can get to the same destination using a single move
-                .filter(m -> m instanceof Move.SingleMove) // then we should heavily punish using a double move
-                .filter(m -> m.commencedBy().equals(move.commencedBy()))
-                .anyMatch(m -> MoveUtil.moveDestination(m) == destination)) {
+        if (move instanceof Move.DoubleMove &&
+                alternativeMoves.stream() // if we can get to the same destination using a single move
+                        .filter(m -> m instanceof Move.SingleMove) // then we should heavily punish using a double move
+                        .anyMatch(m -> MoveUtil.moveDestination(m) == destination)) {
             return score / 10;
         }
 

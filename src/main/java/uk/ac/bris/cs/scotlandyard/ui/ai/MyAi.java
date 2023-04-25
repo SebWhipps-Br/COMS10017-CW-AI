@@ -68,14 +68,14 @@ public class MyAi implements Ai {
         }
         //
         //dijkstra for each possible move
-        int depth = 10;
+        int depth = 5;
         System.out.println("1");
         MiniMax miniMax = new MiniMax();
         System.out.println("2");
         // all the moves should start at the same position
 
         System.out.println(board.getAvailableMoves());
-        MiniMax.MinimaxResult minimaxResult = miniMax.minimaxRoot((Board.GameState) board, depth, mrXLocation);
+        MiniMax.MinimaxResult minimaxResult = miniMax.minimaxRoot(true, (Board.GameState) board, depth, mrXLocation);
         System.out.println(minimaxResult);
         return minimaxResult.move();
     }

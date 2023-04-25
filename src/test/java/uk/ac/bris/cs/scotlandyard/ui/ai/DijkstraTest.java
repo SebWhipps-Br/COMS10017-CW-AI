@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static uk.ac.bris.cs.scotlandyard.model.Piece.Detective.*;
 import static uk.ac.bris.cs.scotlandyard.model.Piece.MrX.MRX;
 import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.*;
@@ -27,11 +28,22 @@ public class DijkstraTest {
         var white = new Player(WHITE, defaultDetectiveTickets(), 50);
         var yellow = new Player(YELLOW, defaultDetectiveTickets(), 138);
 
-        int depth = 10;
+        int depth = 3;
         final Model model = modelFactory.build(new GameSetup(ScotlandYard.standardGraph(), STANDARD24MOVES), mrX, red, green, blue, white, yellow);
 
-        MiniMax.MinimaxResult minimax = new MiniMax().minimaxRoot((Board.GameState) model.getCurrentBoard(), depth, mrX.location());
-        System.out.println(minimax);
+        MiniMax miniMax = new MiniMax();
+
+        Board.GameState currentBoard = (Board.GameState) model.getCurrentBoard();
+        MiniMax.MinimaxResult minimax = miniMax.minimaxRoot(true, currentBoard, depth, mrX.location());
+        assertTrue("Initial move must be done by Mr X", minimax.move().commencedBy().isMrX());
+
+        Board.GameState advance = currentBoard.advance(minimax.move());
+        MiniMax.MinimaxResult minimax2 = miniMax.minimaxRoot(false, advance, depth, mrX.location());
+        assertTrue("Second move must be done by Detective", minimax2.move().commencedBy().isDetective());
+
+        Board.GameState advance2 = advance.advance(minimax2.move());
+        MiniMax.MinimaxResult minimax3 = miniMax.minimaxRoot(false, advance2, depth, mrX.location());
+        assertTrue("Third move must be done by Detective", minimax3.move().commencedBy().isDetective());
     }
 
     @Test
