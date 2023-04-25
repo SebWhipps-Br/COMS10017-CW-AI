@@ -112,6 +112,12 @@ public class Dijkstra {
         return dist;
     }
 
+    /**
+     * evaluates a list of distances and gives it a score
+     *
+     * @param distances a list of distances
+     * @return a score
+     */
     public static Double dijkstraScore(List<Integer> distances) {
         double mean = distances.stream().mapToDouble(x -> x).average().orElseThrow();
         double shortest = Collections.min(distances);
