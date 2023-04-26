@@ -20,10 +20,6 @@ public class MoveUtil {
         }
     };
 
-    private MoveUtil() {
-
-    }
-
     public static int moveDestination(Move move) {
         return move.accept(destinationChecker);
     }
@@ -52,7 +48,7 @@ public class MoveUtil {
         Set<Integer> detectiveLocations = new HashSet<>();
         for (Piece piece : board.getPlayers()) {
             if (piece.isDetective()) {
-                detectiveLocations.add(board.getDetectiveLocation((Piece.Detective) piece).get());
+                detectiveLocations.add(board.getDetectiveLocation((Piece.Detective) piece).orElseThrow());
             }
         }
         return detectiveLocations;
