@@ -95,7 +95,7 @@ public class AlphaBetaMinimax implements GenericMiniMax {
             res = minimise(node, depth, mrXLocation, alpha, beta, head, allowDoubleMoves, availableMoves);
         }
 
-        if (Range.closed(alpha, beta).contains(res.res().score())) { // it's safe to cache because we know it's the true value
+        if (Range.open(alpha, beta).contains(res.res().score())) { // it's safe to cache because we know it's the true value
             cache.put(key, res);
         }
 

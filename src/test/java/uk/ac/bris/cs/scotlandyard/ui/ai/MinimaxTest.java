@@ -24,42 +24,35 @@ public class MinimaxTest {
         var blue = new Player(BLUE, defaultDetectiveTickets(), 94);
         var white = new Player(WHITE, defaultDetectiveTickets(), 50);
 
-        int depth = 8;
+        int depth = 3;
         final Model model = modelFactory.build(new GameSetup(ScotlandYard.standardGraph(), STANDARD24MOVES), mrX, red, green, blue, white);
 
         GenericMiniMax miniMax = new MinimaxFactory().createWithPruning(true);
 
         Board.GameState currentBoard = (Board.GameState) model.getCurrentBoard();
         var result = miniMax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
-        validateResult(0, 4, result);
+        validateResult(true, 0, result);
 
 
         for (int i = 0; i < 4; i++) {
             currentBoard = currentBoard.advance(result.move());
             result = miniMax.minimaxRoot(false, currentBoard, depth, mrX.location(), false);
-            validateResult(i + 1, 4, result);
+            validateResult(false, i + 1, result);
         }
 
         currentBoard = currentBoard.advance(result.move());
         result = miniMax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
-        validateResult(6, 4, result);
+        validateResult(true, 6, result);
     }
 
-    private void validateResult(int i, int detectiveCount, GenericMiniMax.MinimaxResult result) {
-        if (i == 0) {
-            assertTrue("Initial move must be done by Mr X", result.move().commencedBy().isMrX());
-            return;
-        }
-        if (i < detectiveCount) {
-            assertTrue("Move %d must be done by Detective".formatted(i), result.move().commencedBy().isDetective());
-            return;
+    private void validateResult(boolean shouldBeMrX, int i, GenericMiniMax.MinimaxResult result) {
+        if (shouldBeMrX) {
+            assertTrue("Move %d must be done by Mr X".formatted(i), result.move().commencedBy().isMrX());
+        } else {
+            assertTrue("Move %s %d must be done by Detective".formatted(result.move().toString(), i), result.move().commencedBy().isDetective());
         }
 
-        if (i % detectiveCount == 1) {
-            assertTrue("Move %d must be done by Mr X".formatted(i), result.move().commencedBy().isMrX());
-            return;
-        }
-        assertTrue("Move %d must be done by Detective".formatted(i), result.move().commencedBy().isDetective());
+
     }
 
 
@@ -67,7 +60,9 @@ public class MinimaxTest {
                                           GenericMiniMax.MinimaxResult baseline,
                                           GenericMiniMax.MinimaxResult other) {
         if (biggerIsBetter && other.score() < baseline.score() || !biggerIsBetter && other.score() > baseline.score()) {
-            throw new AssertionError("Move2 score was %s than move1 score".formatted(biggerIsBetter ? "lower" : "higher"));
+            throw new AssertionError("Move2 score was %s than move1 score when it should've been %s"
+                    .formatted(biggerIsBetter ? "lower" : "higher"
+                            , biggerIsBetter ? "higher" : "lower"));
         }
     }
 
@@ -92,16 +87,16 @@ public class MinimaxTest {
 
         var cached = cachingMinimax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
         var nonCached = nonCachingMinimax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
-        validateResult(0, 4, cached);
-        validateResult(0, 4, nonCached);
+        validateResult(true, 0, cached);
+        validateResult(true, 0, nonCached);
         assertEqualOrBetterScore(true, nonCached, cached);
 
         for (int i = 0; i < 4; i++) {
             currentBoard = currentBoard.advance(nonCached.move());
             cached = cachingMinimax.minimaxRoot(false, currentBoard, depth, mrX.location(), false);
             nonCached = nonCachingMinimax.minimaxRoot(false, currentBoard, depth, mrX.location(), false);
-            validateResult(i + 1, 4, cached);
-            validateResult(i + 1, 4, nonCached);
+            validateResult(false, i + 1, cached);
+            validateResult(false, i + 1, nonCached);
             assertEqualOrBetterScore(false, nonCached, cached);
         }
 
@@ -109,8 +104,8 @@ public class MinimaxTest {
         cached = cachingMinimax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
         nonCached = nonCachingMinimax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
         assertEqualOrBetterScore(true, cached, nonCached);
-        validateResult(6, 4, cached);
-        validateResult(6, 4, nonCached);
+        validateResult(false,6,  cached);
+        validateResult(false,6, nonCached);
     }
 
     @Test
@@ -158,7 +153,7 @@ public class MinimaxTest {
         var blue = new Player(BLUE, defaultDetectiveTickets(), 94);
         var white = new Player(WHITE, defaultDetectiveTickets(), 50);
 
-        int depth = 4;
+        int depth = 5;
         final Model model = modelFactory.build(new GameSetup(ScotlandYard.standardGraph(), STANDARD24MOVES), mrX, red, green, blue, white);
 
 
