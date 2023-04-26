@@ -5,7 +5,6 @@ import com.google.common.graph.MutableValueGraph;
 import com.google.common.graph.ValueGraphBuilder;
 import org.junit.Test;
 import uk.ac.bris.cs.scotlandyard.model.*;
-import uk.ac.bris.cs.scotlandyard.ui.ai.minimax.AlphaBetaMinimax;
 import uk.ac.bris.cs.scotlandyard.ui.ai.minimax.GenericMiniMax;
 import uk.ac.bris.cs.scotlandyard.ui.ai.minimax.MinimaxFactory;
 
@@ -36,29 +35,63 @@ public class MainTest {
         GenericMiniMax miniMax = new MinimaxFactory().createStandard(true);
 
         Board.GameState currentBoard = (Board.GameState) model.getCurrentBoard();
-        AlphaBetaMinimax.MinimaxResult minimax = miniMax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
-        assertTrue("Initial move must be done by Mr X", minimax.move().commencedBy().isMrX());
+        var result = miniMax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
+        assertTrue("Initial move must be done by Mr X", result.move().commencedBy().isMrX());
+
+        for (int i = 0; i < 4; i++) {
+            currentBoard = currentBoard.advance(result.move());
+            result = miniMax.minimaxRoot(false, currentBoard, depth, mrX.location(), false);
+            assertTrue("Move %d must be done by Detective".formatted(i + 1), result.move().commencedBy().isDetective());
+
+        }
+
+        currentBoard = currentBoard.advance(result.move());
+        result = miniMax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
+        assertTrue("Sixth move must be done by Mr X", result.move().commencedBy().isMrX());
+    }
 
 
-        Board.GameState advance = currentBoard.advance(minimax.move());
-        AlphaBetaMinimax.MinimaxResult minimax2 = miniMax.minimaxRoot(false, advance, depth, mrX.location(), false);
-        assertTrue("Second move must be done by Detective", minimax2.move().commencedBy().isDetective());
+    private void assertEqualOrBetterScore(boolean biggerIsBetter,
+                                          GenericMiniMax.MinimaxResult move1,
+                                          GenericMiniMax.MinimaxResult move2) {
+        if (biggerIsBetter && move2.score() < move1.score() || !biggerIsBetter && move2.score() > move1.score()) {
+            throw new AssertionError("Move2 score was %s than move1 score".formatted(biggerIsBetter ? "lower" : "higher"));
+        }
+    }
 
-        Board.GameState advance2 = advance.advance(minimax2.move());
-        AlphaBetaMinimax.MinimaxResult minimax3 = miniMax.minimaxRoot(false, advance2, depth, mrX.location(), false);
-        assertTrue("Third move must be done by Detective", minimax3.move().commencedBy().isDetective());
+    @Test
+    public void testMinimaxCachingDoesntMakeResultsWorse() throws IOException {
+        MyModelFactory modelFactory = new MyModelFactory();
 
-        Board.GameState advance3 = advance2.advance(minimax3.move());
-        AlphaBetaMinimax.MinimaxResult minimax4 = miniMax.minimaxRoot(false, advance3, depth, mrX.location(), false);
-        assertTrue("Fourth move must be done by Detective", minimax4.move().commencedBy().isDetective());
+        var mrX = new Player(MRX, defaultMrXTickets(), 106);
+        var red = new Player(RED, defaultDetectiveTickets(), 91);
+        var green = new Player(GREEN, defaultDetectiveTickets(), 29);
+        var blue = new Player(BLUE, defaultDetectiveTickets(), 94);
+        var white = new Player(WHITE, defaultDetectiveTickets(), 50);
 
-        Board.GameState advance4 = advance3.advance(minimax4.move());
-        AlphaBetaMinimax.MinimaxResult minimax5 = miniMax.minimaxRoot(false, advance4, depth, mrX.location(), false);
-        assertTrue("Fifth move must be done by Detective", minimax5.move().commencedBy().isDetective());
+        int depth = 5;
+        final Model model = modelFactory.build(new GameSetup(ScotlandYard.standardGraph(), STANDARD24MOVES), mrX, red, green, blue, white);
 
-        Board.GameState advance5 = advance4.advance(minimax5.move());
-        AlphaBetaMinimax.MinimaxResult minimax6 = miniMax.minimaxRoot(true, advance5, depth, mrX.location(), false);
-        assertTrue("Sixth move must be done by Mr X", minimax6.move().commencedBy().isMrX());
+
+        GenericMiniMax cachingMinimax = new MinimaxFactory().createStandard(true);
+        GenericMiniMax nonCachingMinimax = new MinimaxFactory().createStandard(false);
+
+        Board.GameState currentBoard = (Board.GameState) model.getCurrentBoard();
+        var cached = cachingMinimax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
+        var nonCached = nonCachingMinimax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
+        assertEqualOrBetterScore(true, cached, nonCached);
+
+        for (int i = 0; i < 4; i++) {
+            currentBoard = currentBoard.advance(nonCached.move());
+            cached = cachingMinimax.minimaxRoot(false, currentBoard, depth, mrX.location(), false);
+            nonCached = nonCachingMinimax.minimaxRoot(false, currentBoard, depth, mrX.location(), false);
+            assertEqualOrBetterScore(false, cached, nonCached);
+        }
+
+
+        cached = cachingMinimax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
+        nonCached = nonCachingMinimax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
+        assertEqualOrBetterScore(true, cached, nonCached);
     }
 
     @Test
