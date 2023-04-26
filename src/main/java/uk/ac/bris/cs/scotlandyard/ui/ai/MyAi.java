@@ -48,7 +48,8 @@ public class MyAi implements Ai {
                 .stream()
                 .filter(m -> m.commencedBy().isMrX())
                 .findFirst().orElseThrow().source();
-        boolean doubleMoveAvailable = board.getAvailableMoves().stream()
+        boolean doubleMoveAvailable = board.getAvailableMoves()
+                .stream()
                 .anyMatch(MoveUtil::checkDoubleMove);
         double currentPositionScore = Dijkstra.dijkstraScore(MoveTree.getDetectiveDistances(board, mrXLocation)); //an evaluation of the current position
         boolean allowDoubleMove = currentPositionScore < 2 && doubleMoveAvailable; //double move will occur in situations where detectives are less than a node away (mostly)
