@@ -4,8 +4,8 @@ import io.atlassian.fugue.Pair;
 import uk.ac.bris.cs.scotlandyard.model.Ai;
 import uk.ac.bris.cs.scotlandyard.model.Board;
 import uk.ac.bris.cs.scotlandyard.model.Move;
-import uk.ac.bris.cs.scotlandyard.ui.ai.minimax.AlphaBetaMinimax;
-import uk.ac.bris.cs.scotlandyard.ui.ai.minimax.scoring.DijkstraMoveScorer;
+import uk.ac.bris.cs.scotlandyard.ui.ai.minimax.GenericMiniMax;
+import uk.ac.bris.cs.scotlandyard.ui.ai.minimax.MinimaxFactory;
 
 import javax.annotation.Nonnull;
 import java.util.Random;
@@ -16,10 +16,18 @@ import java.util.concurrent.TimeoutException;
 
 public class MyAi implements Ai {
 
+    private GenericMiniMax miniMax;
+
     @Nonnull
     @Override
     public String name() {
         return "Dijkstra-tron";
+    }
+
+    @Override
+    public void onStart() {
+        MinimaxFactory minimaxFactory = new MinimaxFactory();
+        miniMax = minimaxFactory.createWithPruning(true);
     }
 
     @Nonnull
@@ -57,8 +65,9 @@ public class MyAi implements Ai {
         boolean allowDoubleMove = currentPositionScore < 2 && doubleMoveAvailable; //double move will occur in situations where detectives are less than a node away (mostly)
 
         int depth = allowDoubleMove ? 3 : 5; // depth smaller for doubleMoves to avoid timeout from a large tree
-        AlphaBetaMinimax miniMax = new AlphaBetaMinimax(new DijkstraMoveScorer(), true);
-        return miniMax.minimaxRoot(true, (Board.GameState) board, depth, mrXLocation, allowDoubleMove).move();
+
+        GenericMiniMax.MinimaxResult result = miniMax.minimaxRoot(true, (Board.GameState) board, depth, mrXLocation, allowDoubleMove);
+        return result.move();
     }
 
     /**
