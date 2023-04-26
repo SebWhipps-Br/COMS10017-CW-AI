@@ -1,11 +1,6 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai;
 
-import uk.ac.bris.cs.scotlandyard.model.Board;
 import uk.ac.bris.cs.scotlandyard.model.Move;
-import uk.ac.bris.cs.scotlandyard.model.Piece;
-
-import java.util.HashSet;
-import java.util.Set;
 
 public class MoveUtil {
     private static final Move.Visitor<Integer> destinationChecker = new Move.Visitor<>() {
@@ -20,12 +15,32 @@ public class MoveUtil {
         }
     };
 
+    private MoveUtil() {
+
+    }
+
+    /**
+     * Get Mr X's location after a move
+     *
+     * @param currentMrXLocation Mr X's current location
+     * @param move               The move
+     * @return Mr X's (maybe) new location
+     */
+    public static int getMrXLocationAfter(int currentMrXLocation, Move move) {
+        if (move.commencedBy().isMrX()) {
+            return MoveUtil.moveDestination(move);
+        }
+        return currentMrXLocation;
+    }
+
+
     public static int moveDestination(Move move) {
         return move.accept(destinationChecker);
     }
 
     /**
      * Uses visitor to check if a move is a double or not
+     *
      * @param move move to be checked
      * @return true if doubleMove, false if singleMove
      */
@@ -44,13 +59,4 @@ public class MoveUtil {
         return move.accept(doubleMoveChecker);
     }
 
-    private static Set<Integer> getDetectiveLocations(Board board) {
-        Set<Integer> detectiveLocations = new HashSet<>();
-        for (Piece piece : board.getPlayers()) {
-            if (piece.isDetective()) {
-                detectiveLocations.add(board.getDetectiveLocation((Piece.Detective) piece).orElseThrow());
-            }
-        }
-        return detectiveLocations;
-    }
 }

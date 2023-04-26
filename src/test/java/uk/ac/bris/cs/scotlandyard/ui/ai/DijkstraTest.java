@@ -5,6 +5,9 @@ import com.google.common.graph.MutableValueGraph;
 import com.google.common.graph.ValueGraphBuilder;
 import org.junit.Test;
 import uk.ac.bris.cs.scotlandyard.model.*;
+import uk.ac.bris.cs.scotlandyard.ui.ai.minimax.GenericMiniMax;
+import uk.ac.bris.cs.scotlandyard.ui.ai.minimax.AlphaBetaMinimax;
+import uk.ac.bris.cs.scotlandyard.ui.ai.minimax.MinimaxFactory;
 
 import java.io.IOException;
 import java.util.Map;
@@ -30,35 +33,50 @@ public class DijkstraTest {
         int depth = 6;
         final Model model = modelFactory.build(new GameSetup(ScotlandYard.standardGraph(), STANDARD24MOVES), mrX, red, green, blue, white);
 
-        MiniMax miniMax = new MiniMax();
+        GenericMiniMax miniMax = new MinimaxFactory().createStandard(true);
 
         Board.GameState currentBoard = (Board.GameState) model.getCurrentBoard();
-        MiniMax.MinimaxResult minimax = miniMax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
+        AlphaBetaMinimax.MinimaxResult minimax = miniMax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
         assertTrue("Initial move must be done by Mr X", minimax.move().commencedBy().isMrX());
+        System.out.println(minimax.move());
+
 
         Board.GameState advance = currentBoard.advance(minimax.move());
-        MiniMax.MinimaxResult minimax2 = miniMax.minimaxRoot(false, advance, depth, mrX.location(), false);
+        AlphaBetaMinimax.MinimaxResult minimax2 = miniMax.minimaxRoot(false, advance, depth, mrX.location(), false);
         assertTrue("Second move must be done by Detective", minimax2.move().commencedBy().isDetective());
+        System.out.println(minimax2.move());
 
         Board.GameState advance2 = advance.advance(minimax2.move());
-        MiniMax.MinimaxResult minimax3 = miniMax.minimaxRoot(false, advance2, depth, mrX.location(), false);
+        AlphaBetaMinimax.MinimaxResult minimax3 = miniMax.minimaxRoot(false, advance2, depth, mrX.location(), false);
         assertTrue("Third move must be done by Detective", minimax3.move().commencedBy().isDetective());
+        System.out.println(minimax3.move());
 
         Board.GameState advance3 = advance2.advance(minimax3.move());
-        MiniMax.MinimaxResult minimax4 = miniMax.minimaxRoot(false, advance3, depth, mrX.location(), false);
+        AlphaBetaMinimax.MinimaxResult minimax4 = miniMax.minimaxRoot(false, advance3, depth, mrX.location(), false);
         assertTrue("Fourth move must be done by Detective", minimax4.move().commencedBy().isDetective());
+        System.out.println(minimax4.move());
 
         Board.GameState advance4 = advance3.advance(minimax4.move());
-        MiniMax.MinimaxResult minimax5 = miniMax.minimaxRoot(false, advance4, depth, mrX.location(), false);
+        AlphaBetaMinimax.MinimaxResult minimax5 = miniMax.minimaxRoot(false, advance4, depth, mrX.location(), false);
         assertTrue("Fifth move must be done by Detective", minimax5.move().commencedBy().isDetective());
+        System.out.println(minimax5.move());
 
         Board.GameState advance5 = advance4.advance(minimax5.move());
-        MiniMax.MinimaxResult minimax6 = miniMax.minimaxRoot(true, advance5, depth, mrX.location(), false);
+        AlphaBetaMinimax.MinimaxResult minimax6 = miniMax.minimaxRoot(true, advance5, depth, mrX.location(), false);
         assertTrue("Sixth move must be done by Mr X", minimax6.move().commencedBy().isMrX());
+        System.out.println(minimax6.move());
+        /*
+SECRET(MRX@106, 105)
+BUS(BLUE@94, 77)
+TAXI(GREEN@29, 42)
+TAXI(RED@91, 72)
+TAXI(WHITE@50, 49)
+SECRET(MRX@105, 108)
+         */
     }
 
     @Test
-    public void testDijkstraPerformance() throws IOException {
+    public void testDijkstraPerformance() {
         MutableValueGraph<Integer, Integer> graph = ValueGraphBuilder.undirected().build();
 
         graph.addNode(1);
