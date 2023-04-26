@@ -180,6 +180,8 @@
                 <configuration>
                     <trimStackTrace>false</trimStackTrace>
                     <skipAfterFailureCount>${skipAfter}</skipAfterFailureCount>
+                    <parallel>all</parallel>
+                    <useUnlimitedThreads>true</useUnlimitedThreads>
                 </configuration>
             </plugin>
 

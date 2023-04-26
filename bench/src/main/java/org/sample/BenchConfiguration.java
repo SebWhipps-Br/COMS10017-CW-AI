@@ -13,9 +13,9 @@ import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.*;
 
 @State(Scope.Benchmark)
 public class BenchConfiguration {
-    public final GenericMiniMax withCaching = new MinimaxFactory().createStandard(true);
-    public final GenericMiniMax withoutCaching = new MinimaxFactory().createStandard(false);
-    @Param({"1", "2", "3", "4", "5", "6"})
+    public final GenericMiniMax withCaching = new MinimaxFactory().createWithPruning(true);
+    public final GenericMiniMax withoutCaching = new MinimaxFactory().createWithPruning(false);
+    @Param({"2", "3", "4", "5", "6"})
     public int depth;
     public boolean allowDoubleMoves;
     public Board.GameState model;

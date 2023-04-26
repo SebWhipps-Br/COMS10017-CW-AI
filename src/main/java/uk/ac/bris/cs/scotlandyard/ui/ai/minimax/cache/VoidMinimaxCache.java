@@ -1,18 +1,16 @@
 package uk.ac.bris.cs.scotlandyard.ui.ai.minimax.cache;
 
-import uk.ac.bris.cs.scotlandyard.ui.ai.minimax.GenericMiniMax;
-
 /**
  * A {@link MinimaxCache} that doesn't actually cache anything
  */
-public class VoidMinimaxCache<S> implements MinimaxCache<S> {
+public class VoidMinimaxCache<K, V> implements MinimaxCache<K, V> {
     @Override
-    public GenericMiniMax.MinimaxResult get(S input) {
+    public V get(K input) {
         return null;
     }
 
     @Override
-    public void put(S key, GenericMiniMax.MinimaxResult val) {
+    public void put(K key, V val) {
 // do nothing
     }
 }

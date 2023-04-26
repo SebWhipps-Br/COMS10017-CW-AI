@@ -4,11 +4,11 @@ import uk.ac.bris.cs.scotlandyard.ui.ai.minimax.GenericMiniMax;
 
 import javax.annotation.Nullable;
 
-public interface MinimaxCache<S> {
+public interface MinimaxCache<S, V> {
 
     @Nullable
-    GenericMiniMax.MinimaxResult get(S input);
+    V get(S input);
 
-    void put(S key, GenericMiniMax.MinimaxResult val);
+    void put(S key, V val);
 
 }

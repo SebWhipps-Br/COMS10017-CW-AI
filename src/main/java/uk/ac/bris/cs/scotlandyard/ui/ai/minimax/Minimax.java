@@ -2,10 +2,8 @@ package uk.ac.bris.cs.scotlandyard.ui.ai.minimax;
 
 import com.esotericsoftware.kryo.util.Null;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Range;
 import uk.ac.bris.cs.scotlandyard.model.Board.GameState;
 import uk.ac.bris.cs.scotlandyard.model.Move;
-import uk.ac.bris.cs.scotlandyard.ui.ai.ComparableUtil;
 import uk.ac.bris.cs.scotlandyard.ui.ai.MoveUtil;
 import uk.ac.bris.cs.scotlandyard.ui.ai.minimax.cache.HashingMinimaxCache;
 import uk.ac.bris.cs.scotlandyard.ui.ai.minimax.cache.MinimaxCache;
@@ -14,13 +12,15 @@ import uk.ac.bris.cs.scotlandyard.ui.ai.minimax.scoring.MoveScorer;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.stream.Stream;
 
-public class AlphaBetaMinimax implements GenericMiniMax {
+public class Minimax implements GenericMiniMax {
 
-    private final MinimaxCache<MinimaxState, FullMinimaxResult> cache;
+    private final MinimaxCache<MinimaxState, MinimaxResult> cache;
     private final MoveScorer moveScorer;
 
-    public AlphaBetaMinimax(MoveScorer moveScorer, boolean cache) {
+    public Minimax(MoveScorer moveScorer, boolean cache) {
         this.moveScorer = moveScorer;
         this.cache = cache ? new HashingMinimaxCache<>() : new VoidMinimaxCache<>();
     }
@@ -34,7 +34,7 @@ public class AlphaBetaMinimax implements GenericMiniMax {
 
 
         // We are Mr X, so we want to maximise our first move
-        return minimax(isMrX, availableMoves, null, root, depth, mrXLocation, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, null, allowDoubleMoves);
+        return minimax(isMrX, availableMoves, null, root, depth, mrXLocation, null, allowDoubleMoves);
     }
 
     /**
@@ -57,14 +57,11 @@ public class AlphaBetaMinimax implements GenericMiniMax {
                                  GameState node,
                                  int depth,
                                  int mrXLocation,
-                                 double alpha,
-                                 double beta,
                                  @Null Move head,
                                  boolean allowDoubleMoves) {
 
         //base case:
-        ImmutableSet<Move> allAvailableMoves = node.getAvailableMoves();
-        Collection<Move> availableMoves = allAvailableMoves
+        Collection<Move> availableMoves = node.getAvailableMoves()
                 .stream()
                 .filter(m -> !MoveUtil.checkDoubleMove(m) || allowDoubleMoves) //removes doubles if needed
                 .toList();
@@ -81,67 +78,49 @@ public class AlphaBetaMinimax implements GenericMiniMax {
 
 
         // do not use the filtered available moves here!! it messes up the results
-        MinimaxState key = new MinimaxState(alpha, beta, depth, allAvailableMoves, isMrX);
+        MinimaxState key = new MinimaxState(depth, node.getAvailableMoves(), isMrX);
 
-        FullMinimaxResult cachedResult = cache.get(key); // check for cache, if applicable
-        if (cachedResult != null && cachedResult.depth >= depth) {
-            return cachedResult.res();
+        GenericMiniMax.MinimaxResult cachedResult = cache.get(key); // check for cache, if applicable
+        if (cachedResult != null) {
+            return cachedResult;
         }
 
-        FullMinimaxResult res;
+        MinimaxResult result;
         if (isMrX) { //maximising player, thus maximise the minimum distance
-            res = maximise(node, depth, mrXLocation, alpha, beta, head, allowDoubleMoves, availableMoves);
+            result = maximise(node, depth, mrXLocation, head, allowDoubleMoves, availableMoves);
         } else { //detective, thus minimise the maximum distance
-            res = minimise(node, depth, mrXLocation, alpha, beta, head, allowDoubleMoves, availableMoves);
+            result = minimise(node, depth, mrXLocation, head, allowDoubleMoves, availableMoves);
         }
+        cache.put(key, result);
+        return result;
 
-        if (Range.closed(alpha, beta).contains(res.res().score())) { // it's safe to cache because we know it's the true value
-            cache.put(key, res);
-        }
-
-        return res.res();
     }
 
-    private FullMinimaxResult minimise(GameState node, int depth, int mrXLocation, double alpha, double beta, @Nullable Move head, boolean allowDoubleMoves, Collection<Move> availableMoves) {
-        MinimaxResult value = null;
-        for (Move subMove : availableMoves) {
-            GameState nextBoard = node.advance(subMove);
-            boolean isMrXNow = nextBoard.getAvailableMoves().stream().anyMatch(m -> m.commencedBy().isMrX()); // there are multiple detectives, so we can't just assume it will be mr x's turn afterwards
-
-            var res = minimax(isMrXNow, availableMoves, subMove, nextBoard, depth - 1, MoveUtil.getMrXLocationAfter(mrXLocation, subMove), alpha, beta, head == null ? subMove : head, allowDoubleMoves);
-            value = value == null ? res : ComparableUtil.min(value, res);
-            beta = Math.min(beta, value.score());
-
-            if (value.score() <= alpha) {
-                break; // alpha cutoff
-            }
-        }
-        return new FullMinimaxResult(value, alpha, beta, depth);
+    private MinimaxResult minimise(GameState node, int depth, int mrXLocation, @Nullable Move head, boolean allowDoubleMoves, Collection<Move> availableMoves) {
+        return getSubMoves(node, depth, mrXLocation, head, allowDoubleMoves, availableMoves)
+                .min(Comparator.naturalOrder())
+                .orElseThrow();
     }
 
-    private FullMinimaxResult maximise(GameState node, int depth, int mrXLocation, double alpha, double beta, @Nullable Move head, boolean allowDoubleMoves, Collection<Move> availableMoves) {
-        MinimaxResult value = null;
-        for (Move subMove : availableMoves) {
-            GameState nextBoard = node.advance(subMove);
+    private Stream<MinimaxResult> getSubMoves(GameState node, int depth, int mrXLocation, Move head, boolean allowDoubleMoves, Collection<Move> availableMoves) {
+        return availableMoves
+                .parallelStream()
+                .map(subMove -> {
+                    var nextBoard = node.advance(subMove);
+                    return minimax(false, availableMoves, subMove, nextBoard, depth - 1, MoveUtil.getMrXLocationAfter(mrXLocation, subMove), head == null ? subMove : head, allowDoubleMoves);
+                });
+    }
 
-            var res = minimax(false, availableMoves, subMove, nextBoard, depth - 1, MoveUtil.getMrXLocationAfter(mrXLocation, subMove), alpha, beta, head == null ? subMove : head, allowDoubleMoves);
-            value = value == null ? res : ComparableUtil.max(value, res);
-            alpha = Math.max(alpha, value.score());
-
-            if (value.score() >= beta) {
-                break; // beta cutoff
-            }
-        }
-        return new FullMinimaxResult(value, alpha, beta, depth);
+    private MinimaxResult maximise(GameState node, int depth, int mrXLocation, @Nullable Move head, boolean allowDoubleMoves, Collection<Move> availableMoves) {
+        return getSubMoves(node, depth, mrXLocation, head, allowDoubleMoves, availableMoves)
+                .max(Comparator.naturalOrder())
+                .orElseThrow();
     }
 
 
-    private record MinimaxState(double alpha, double beta, int depth, Collection<Move> availableMoves, boolean isMrX) {
+    private record MinimaxState(int depth, Collection<Move> availableMoves, boolean isMrX) {
 
     }
 
 
-    record FullMinimaxResult(MinimaxResult res, double alpha, double beta, double depth) {
-
-    }
 }
