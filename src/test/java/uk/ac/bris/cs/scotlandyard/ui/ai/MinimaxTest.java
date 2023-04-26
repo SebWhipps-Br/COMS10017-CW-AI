@@ -104,8 +104,8 @@ public class MinimaxTest {
         cached = cachingMinimax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
         nonCached = nonCachingMinimax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
         assertEqualOrBetterScore(true, cached, nonCached);
-        validateResult(false,6,  cached);
-        validateResult(false,6, nonCached);
+        validateResult(false, 6, cached);
+        validateResult(false, 6, nonCached);
     }
 
     @Test
@@ -157,25 +157,69 @@ public class MinimaxTest {
         final Model model = modelFactory.build(new GameSetup(ScotlandYard.standardGraph(), STANDARD24MOVES), mrX, red, green, blue, white);
 
 
-        GenericMiniMax pruningMinimax = new MinimaxFactory().create(false);
-        GenericMiniMax nonPruningMinimax = new MinimaxFactory().create(true);
+        GenericMiniMax cachingMinimax = new MinimaxFactory().create(false);
+        GenericMiniMax nonCachingMinimax = new MinimaxFactory().create(true);
 
         Board.GameState currentBoard = (Board.GameState) model.getCurrentBoard();
-        var cached = pruningMinimax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
-        var nonCached = nonPruningMinimax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
+        var cached = cachingMinimax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
+        var nonCached = nonCachingMinimax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
         assertEqualOrBetterScore(true, nonCached, cached);
 
         for (int i = 0; i < 4; i++) {
             currentBoard = currentBoard.advance(nonCached.move());
-            cached = pruningMinimax.minimaxRoot(false, currentBoard, depth, mrX.location(), false);
-            nonCached = nonPruningMinimax.minimaxRoot(false, currentBoard, depth, mrX.location(), false);
+            cached = cachingMinimax.minimaxRoot(false, currentBoard, depth, mrX.location(), false);
+            nonCached = nonCachingMinimax.minimaxRoot(false, currentBoard, depth, mrX.location(), false);
             assertEqualOrBetterScore(false, nonCached, cached);
         }
 
 
-        cached = pruningMinimax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
-        nonCached = nonPruningMinimax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
+        cached = cachingMinimax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
+        nonCached = nonCachingMinimax.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
         assertEqualOrBetterScore(true, nonCached, cached);
+    }
+
+    @Test
+    public void testAllFourGetSameOrBetterResults() throws IOException {
+        MyModelFactory modelFactory = new MyModelFactory();
+
+        var mrX = new Player(MRX, defaultMrXTickets(), 106);
+        var red = new Player(RED, defaultDetectiveTickets(), 91);
+        var green = new Player(GREEN, defaultDetectiveTickets(), 29);
+        var blue = new Player(BLUE, defaultDetectiveTickets(), 94);
+        var white = new Player(WHITE, defaultDetectiveTickets(), 50);
+
+        int depth = 6;
+        final Model model = modelFactory.build(new GameSetup(ScotlandYard.standardGraph(), STANDARD24MOVES), mrX, red, green, blue, white);
+
+
+        GenericMiniMax none = new MinimaxFactory().create(false);
+        GenericMiniMax caching = new MinimaxFactory().create(true);
+        GenericMiniMax pruningAndCaching = new MinimaxFactory().createWithPruning(true);
+        GenericMiniMax pruning = new MinimaxFactory().createWithPruning(false);
+
+        Board.GameState currentBoard = (Board.GameState) model.getCurrentBoard();
+        var noned = none.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
+        var cached = caching.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
+        var prunedAndCached = pruningAndCaching.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
+        var pruned = pruning.minimaxRoot(true, currentBoard, depth, mrX.location(), false);
+        assertEqualOrBetterScore(true, noned, cached);
+        assertEqualOrBetterScore(true, noned, prunedAndCached);
+        assertEqualOrBetterScore(true, noned, pruned);
+
+        assertEqualOrBetterScore(true, cached, pruned);
+        assertEqualOrBetterScore(true, cached, prunedAndCached);
+        assertEqualOrBetterScore(true, cached, noned);
+
+        assertEqualOrBetterScore(true, pruned, noned);
+        assertEqualOrBetterScore(true, pruned, cached);
+        assertEqualOrBetterScore(true, pruned, prunedAndCached);
+
+        assertEqualOrBetterScore(true, prunedAndCached, noned);
+        assertEqualOrBetterScore(true, prunedAndCached, cached);
+        assertEqualOrBetterScore(true, prunedAndCached, pruned);
+
+
+
     }
 
 
