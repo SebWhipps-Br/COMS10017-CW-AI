@@ -8,6 +8,7 @@ import uk.ac.bris.cs.scotlandyard.ui.ai.minimax.GenericMiniMax;
 import uk.ac.bris.cs.scotlandyard.ui.ai.minimax.MinimaxFactory;
 
 import javax.annotation.Nonnull;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -17,6 +18,8 @@ import java.util.concurrent.TimeoutException;
 public class MyAi implements Ai {
 
     private GenericMiniMax miniMax;
+
+    private int previousMrXLocation;
 
     @Nonnull
     @Override
@@ -54,19 +57,24 @@ public class MyAi implements Ai {
      * @return a move
      */
     private Move pickGoodMove(Board board) {
-        int mrXLocation = board.getAvailableMoves()
+        Optional<Move> anyMrXMove = board.getAvailableMoves()
                 .stream()
                 .filter(m -> m.commencedBy().isMrX())
-                .findFirst().orElseThrow().source();
+                .findAny();
+        var isMrX = anyMrXMove.isPresent();
+        anyMrXMove.ifPresent(loc -> previousMrXLocation = loc.source());
+
         boolean doubleMoveAvailable = board.getAvailableMoves()
                 .stream()
                 .anyMatch(MoveUtil::checkDoubleMove);
-        double currentPositionScore = Dijkstra.dijkstraScore(MoveTree.getDetectiveDistances(board, mrXLocation)); //an evaluation of the current position
+
+        double currentPositionScore = Dijkstra.dijkstraScore(MoveTree.getDetectiveDistances(board, previousMrXLocation)); //an evaluation of the current position
         boolean allowDoubleMove = currentPositionScore < 2 && doubleMoveAvailable; //double move will occur in situations where detectives are less than a node away (mostly)
 
         int depth = allowDoubleMove ? 3 : 5; // depth smaller for doubleMoves to avoid timeout from a large tree
 
-        GenericMiniMax.MinimaxResult result = miniMax.minimaxRoot(true, (Board.GameState) board, depth, mrXLocation, allowDoubleMove);
+
+        GenericMiniMax.MinimaxResult result = miniMax.minimaxRoot(isMrX, (Board.GameState) board, depth, previousMrXLocation, allowDoubleMove);
         return result.move();
     }
 

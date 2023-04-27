@@ -33,7 +33,6 @@ public class AlphaBetaMinimax implements GenericMiniMax {
         }
 
 
-        // We are Mr X, so we want to maximise our first move
         return minimax(isMrX, availableMoves, null, root, depth, mrXLocation, Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY, null, allowDoubleMoves);
     }
 
