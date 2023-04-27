@@ -2,7 +2,6 @@ package uk.ac.bris.cs.scotlandyard.ui.ai.minimax;
 
 import com.esotericsoftware.kryo.util.Null;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Range;
 import uk.ac.bris.cs.scotlandyard.model.Board.GameState;
 import uk.ac.bris.cs.scotlandyard.model.Move;
 import uk.ac.bris.cs.scotlandyard.ui.ai.ComparableUtil;
@@ -94,7 +93,7 @@ public class AlphaBetaMinimax implements GenericMiniMax {
             res = minimise(node, depth, mrXLocation, alpha, beta, head, allowDoubleMoves, availableMoves);
         }
 
-        if (Range.open(alpha, beta).contains(res.res().score())) { // it's safe to cache because we know it's the true value
+        if (alpha < res.res().score() && beta > res.res().score()) {
             cache.put(key, res);
         }
 
