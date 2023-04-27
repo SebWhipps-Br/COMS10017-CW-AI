@@ -13,10 +13,6 @@ import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.*;
 
 @State(Scope.Benchmark)
 public class BenchConfiguration {
-    public final GenericMiniMax pruningWithCaching = new MinimaxFactory().createWithPruning(true);
-    public final GenericMiniMax pruningWithoutCaching = new MinimaxFactory().createWithPruning(false);
-    public final GenericMiniMax withoutCaching = new MinimaxFactory().create(false);
-    public final GenericMiniMax withCaching = new MinimaxFactory().create(true);
     @Param({"2", "3", "4", "5", "6"})
     public int depth;
     public boolean allowDoubleMoves;
