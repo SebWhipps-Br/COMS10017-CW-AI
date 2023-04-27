@@ -6,6 +6,7 @@ import uk.ac.bris.cs.scotlandyard.model.Board;
 import uk.ac.bris.cs.scotlandyard.model.Move;
 import uk.ac.bris.cs.scotlandyard.ui.ai.minimax.GenericMiniMax;
 import uk.ac.bris.cs.scotlandyard.ui.ai.minimax.MinimaxFactory;
+import uk.ac.bris.cs.scotlandyard.ui.ai.minimax.scoring.DistanceUtil;
 
 import javax.annotation.Nonnull;
 import java.util.Optional;
@@ -68,7 +69,7 @@ public class MyAi implements Ai {
                 .stream()
                 .anyMatch(MoveUtil::checkDoubleMove);
 
-        double currentPositionScore = Dijkstra.dijkstraScore(MoveTree.getDetectiveDistances(board, previousMrXLocation)); //an evaluation of the current position
+        double currentPositionScore = Dijkstra.dijkstraScore(DistanceUtil.getDetectiveDistances(board, previousMrXLocation)); //an evaluation of the current position
         boolean allowDoubleMove = currentPositionScore < 2 && doubleMoveAvailable; //double move will occur in situations where detectives are less than a node away (mostly)
 
         int depth = allowDoubleMove ? 3 : 5; // depth smaller for doubleMoves to avoid timeout from a large tree
